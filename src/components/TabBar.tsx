@@ -2,13 +2,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { usePlan } from "@/lib/store";
+import { EVENT } from "@/lib/data";
 
-const TABS = [
+const BASE = [
   { href: "/", label: "Employers", icon: "list" },
   { href: "/floor", label: "Floor", icon: "map" },
   { href: "/route", label: "My route", icon: "route" },
   { href: "/sources", label: "Sources", icon: "source" },
 ] as const;
+
+/**
+ * Once the fair is over the floorplan is dead weight and follow-up is the only
+ * thing that matters. Same four tabs, different job.
+ */
+const FAIR_OVER = new Date(`${EVENT.date}T${EVENT.end}:00-04:00`).getTime();
+const tabsFor = (now: number) =>
+  now > FAIR_OVER
+    ? BASE.map((t) => t.href === "/floor"
+        ? { href: "/followup", label: "Follow-up", icon: "followup" } as const
+        : t)
+    : BASE;
 
 function Icon({ name }: { name: string }) {
   const p = { fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -18,6 +31,7 @@ function Icon({ name }: { name: string }) {
       {name === "map" && <g {...p}><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 7 9 4Z" /><path d="M9 4v13M15 7v12.5" /></g>}
       {name === "route" && <g {...p}><circle cx="6" cy="18" r="2.6" /><circle cx="18" cy="6" r="2.6" /><path d="M8.6 18h5a3.4 3.4 0 0 0 0-6.8h-3a3.4 3.4 0 0 1 0-6.8h3.8" /></g>}
       {name === "source" && <g {...p}><path d="M5 4.6h9.5L19 9v10.4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5.6a1 1 0 0 1 1-1Z" /><path d="M14 4.6V9h4.6M8 13h7M8 16.5h4.5" /></g>}
+      {name === "followup" && <g {...p}><path d="M3.6 6.4h16.8v11.2a1 1 0 0 1-1 1H4.6a1 1 0 0 1-1-1V6.4Z" /><path d="m3.9 6.9 8.1 6 8.1-6" /></g>}
     </svg>
   );
 }
@@ -25,6 +39,8 @@ function Icon({ name }: { name: string }) {
 export default function TabBar() {
   const path = usePathname();
   const { savedIds, ready } = usePlan();
+  // Se evalua en el cliente: el HTML estatico no puede saber que dia es para el usuario.
+  const TABS = ready ? tabsFor(Date.now()) : BASE;
   return (
     <nav className="tabbar" aria-label="Sections">
       <div className="tabbar-in">

@@ -34,6 +34,7 @@ npx vercel --prod
 | `/floor` | Real floorplan with your route drawn on it |
 | `/route` | Stops in sweep order, plus a turn-by-turn mode |
 | `/profile` | Four questions that generate ready-made routes |
+| `/followup` | After the fair: who you owe a reply, with a 48-hour clock |
 | `/sources` | Where every fact comes from, and what we chose not to show |
 
 The Spanish paths this app shipped with (`/plano`, `/ruta`, `/perfil`, `/fuentes`) redirect
@@ -56,6 +57,16 @@ and its width is how many of your stops land there.
 **No match score.** When an employer shows up in your search, the app tells you the exact
 text that surfaced it and links the source. See `/sources` and `../MATCHING.md`.
 
+**Capture is one tap, not typing.** Standing in a loud gym with résumés in your other hand,
+nobody fills in a textarea. Outcomes are chips — "Took my résumé", "Gave me a contact",
+"Said apply online" — and tapping one also marks the booth visited. Those tags are what the
+follow-up tracker runs on: if nothing is captured on Wednesday, there is nothing to chase
+on Thursday.
+
+**The app changes job once the fair ends.** After 3:30 p.m. on September 23 the Floor tab
+becomes Follow-up, because a floorplan is dead weight the next morning and the 48-hour
+window is where job fairs are actually won.
+
 ## Floorplan
 
 Booth positions come from the coordinates of every label in P4E's floorplan PDF, extracted
@@ -75,3 +86,11 @@ cp ../data/app-payload.json src/data/employers.json
 ```
 
 Dataset rule: **if a fact has no citable source, it isn't shown.** See `../RESEARCH.md`.
+
+P4E updates its PDFs up to the day of the fair. Before deploying for a live event, run the
+watcher — it re-fetches all three, diffs the employer list against what the app ships, and
+exits non-zero when anything moved:
+
+```bash
+python3 ../data/watch-sources.py
+```

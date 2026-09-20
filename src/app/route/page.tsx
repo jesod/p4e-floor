@@ -2,18 +2,41 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import EmployerRow from "@/components/EmployerRow";
-import { EMPLOYERS, byWalk, AISLE_ORDER, AISLE_LABEL, AISLE_SHORT, BLOCKING, ELIGIBILITY, host } from "@/lib/data";
+import OutcomeChips from "@/components/OutcomeChips";
+import { EMPLOYERS, byWalk, walkKey, AISLE_ORDER, AISLE_LABEL, AISLE_SHORT, BLOCKING, ELIGIBILITY, host } from "@/lib/data";
+import HereNow from "@/components/HereNow";
 import { usePlan } from "@/lib/store";
 import s from "./route.module.css";
 
 export default function Ruta() {
   const { plan, get, ready, toggleVisited, setNote, reset } = usePlan();
   const [focus, setFocus] = useState(false);
+  const [here, setHere] = useState<string | null>(null);
 
-  const route = useMemo(
+  const saved = useMemo(
     () => EMPLOYERS.filter((e) => plan[e.i]?.saved).sort(byWalk),
     [plan]
   );
+
+  /**
+   * Nobody walks a 15-stop plan in order. Once you've drifted, the suggested
+   * order is noise. Given where you actually are, we carry on the sweep from
+   * there and pick up whatever you skipped at the end.
+   */
+  const route = useMemo(() => {
+    if (!here) return saved;
+    const at = EMPLOYERS.find((e) => e.b === here);
+    if (!at) return saved;
+    const k = walkKey(at);
+    const done = saved.filter((e) => plan[e.i]?.visited);
+    const left = saved.filter((e) => !plan[e.i]?.visited);
+    return [
+      ...done,
+      ...left.filter((e) => walkKey(e) >= k),
+      ...left.filter((e) => walkKey(e) < k),
+    ];
+  }, [saved, here, plan]);
+
   const done = route.filter((e) => plan[e.i]?.visited).length;
   const next = route.find((e) => !plan[e.i]?.visited);
 
@@ -80,8 +103,10 @@ export default function Ruta() {
               </div>
             )}
 
-            <textarea className={s.note} rows={3} value={st.note}
-              placeholder="Who you spoke to, what they asked for…"
+            <OutcomeChips id={next.i} />
+
+            <textarea className={s.note} rows={2} value={st.note}
+              placeholder="Anything else worth remembering (optional)"
               onChange={(ev) => setNote(next.i, ev.target.value)} />
             <p className={s.detailLink}><Link href={`/e/${next.i}`}>See the full profile →</Link></p>
           </div>
@@ -95,8 +120,9 @@ export default function Ruta() {
               if (!skip) setFocus(false);
               else toggleVisited(next.i);
             }}>Skip</button>
-            <button className="btn btn--primary" style={{ flex: 1 }} onClick={() => toggleVisited(next.i)}>
-              Visited
+            <button className="btn btn--primary" style={{ flex: 1 }}
+              onClick={() => { if (!st.visited) toggleVisited(next.i); }}>
+              {st.tags.length ? "Next stop" : "Visited"}
             </button>
           </div>
         </div>
@@ -129,6 +155,15 @@ export default function Ruta() {
             </button>
           </div>
         )}
+        {done > 0 && (
+          <Link href="/followup" className={s.followLink}>
+            <span>
+              <b>{done} visited</b> — see who you owe a follow-up
+            </span>
+            <span aria-hidden="true">→</span>
+          </Link>
+        )}
+        <HereNow value={here} onChange={setHere} />
         <ul className={s.list}>
           {route.map((e, i) => <EmployerRow key={e.i} e={e} stop={i + 1} />)}
         </ul>

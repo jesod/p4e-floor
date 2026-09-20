@@ -1,0 +1,10 @@
+.wrap{margin-top:18px}
+.wrap[data-compact="true"]{margin-top:0}
+.wrap p{margin:0 0 9px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--surface);border:1px solid var(--rule);border-radius:999px;
+  min-height:42px;padding:0 14px;font-size:14px;font-weight:500;color:var(--ink);
+  text-align:left;line-height:1.25}
+.chip:active{transform:translateY(1px)}
+.chip[aria-pressed="true"]{background:var(--court);border-color:var(--court);
+  color:var(--on-court);font-weight:600}

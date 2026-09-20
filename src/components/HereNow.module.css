@@ -1,0 +1,24 @@
+.trigger{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  min-height:var(--tap);margin-top:18px;padding:0 14px;
+  background:transparent;border:1px dashed var(--rule);border-radius:var(--r);
+  color:var(--ink-2);font-size:14px;font-weight:500}
+.trigger:hover{border-color:var(--court);color:var(--court)}
+
+.panel{margin-top:18px;padding:14px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:var(--r)}
+.label{display:block;font-size:14.5px;font-weight:600;margin-bottom:9px}
+.row{display:flex;gap:8px}
+.input{flex:1;min-width:0;min-height:var(--tap);padding:0 12px;font:inherit;font-size:16px;
+  font-family:var(--font-mono),monospace;text-transform:uppercase;
+  color:var(--ink);background:var(--surface-2);border:1px solid var(--rule);border-radius:var(--r)}
+.hint{margin:10px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+.cancel{margin-top:10px;background:none;border:0;color:var(--ink-2);font-size:13.5px;
+  text-decoration:underline;min-height:38px;padding:0}
+
+.active{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:18px;padding:12px 14px;background:var(--court-wash);
+  border-left:4px solid var(--court);border-radius:var(--r)}
+.activeLabel{margin:0;font-size:14px;font-weight:600;color:var(--court-ink)}
+.activeSub{margin:2px 0 0;font-size:12.5px;color:var(--court-ink);opacity:.8}
+.reset{flex:none;background:none;border:0;color:var(--court-ink);font-size:13.5px;
+  font-weight:600;text-decoration:underline;min-height:var(--tap);padding:0 2px}
