@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { usePlan, mergePlans, isEmptyStop, type Plan, type Stop } from "@/lib/store";
+import { usePlan, mergePlans, isEmptyStop, normaliseStop, type Plan } from "@/lib/store";
 import { useProfile, type Profile } from "@/lib/profile";
 import s from "./BackupPanel.module.css";
 
@@ -13,16 +13,9 @@ export default function BackupPanel() {
   const [text, setText] = useState("");
   const [msg, setMsg] = useState("");
 
-  // Saves made before contacts/myEl existed can be missing fields at runtime
-  // even though the type says otherwise, so rebuild each one explicitly.
-  const norm = (v: Partial<Stop>): Stop => ({
-    saved: !!v.saved, visited: !!v.visited, note: v.note ?? "",
-    contacts: Array.isArray(v.contacts) ? v.contacts : [], myEl: v.myEl ?? "",
-  });
-
   // Empty stops carry nothing, so leave them out and keep the file readable.
   const kept = Object.fromEntries(
-    Object.entries(plan).filter(([, v]) => v && !isEmptyStop(norm(v)))
+    Object.entries(plan).filter(([, v]) => v && !isEmptyStop(normaliseStop(v)))
   );
   const nStops = Object.keys(kept).length;
   const nContacts = Object.values(kept).reduce((a, v) => a + (v.contacts?.length ?? 0), 0);

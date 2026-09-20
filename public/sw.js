@@ -1,12 +1,12 @@
 /* P4E Floor — service worker
    The point: RIM Park with 3000 people inside has terrible signal.
    The app still has to open. */
-const VERSION = "p4e-v2";
+const VERSION = "p4e-v3";
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-rt`;
 
 // Screens that must be there even with no data connection.
-const PRECACHE = ["/", "/route", "/floor", "/profile", "/sources", "/manifest.webmanifest",
+const PRECACHE = ["/", "/route", "/floor", "/profile", "/followup", "/sources", "/manifest.webmanifest",
                   "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (ev) => {

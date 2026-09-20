@@ -35,6 +35,10 @@
       "url": "/route"
     },
     {
+      "name": "Follow-up",
+      "url": "/followup"
+    },
+    {
       "name": "Floorplan",
       "url": "/floor"
     }

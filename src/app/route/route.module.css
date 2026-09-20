@@ -53,3 +53,8 @@
 .actions{position:sticky;bottom:0;margin-top:26px;background:var(--bone);
   border-top:1px solid var(--rule);padding-block:12px}
 .actionsIn{display:flex;gap:10px}
+
+.followLink{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:16px;padding:13px 14px;background:var(--court);color:var(--on-court);
+  border-radius:var(--r);text-decoration:none;font-size:14.5px}
+.followLink b{font-weight:700}

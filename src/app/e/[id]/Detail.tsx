@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Employer } from "@/lib/types";
 import { HIRING, BLOCKING, ELIGIBILITY, SECURITY, AISLE_LABEL, PAIRED, host } from "@/lib/data";
 import { usePlan, type MyEl } from "@/lib/store";
+import OutcomeChips from "@/components/OutcomeChips";
 import s from "./detail.module.css";
 
 const MY_EL: { k: MyEl; label: string }[] = [
@@ -175,7 +176,8 @@ export default function Detail({ e }: { e: Employer }) {
           </div>
         </Section>
 
-        <Section title="Your notes">
+        <Section title="At the booth">
+          <OutcomeChips id={e.i} compact />
           <textarea className={s.textarea} value={st.note} rows={3}
             placeholder="Who you spoke to, what they asked for, what to follow up on…"
             onChange={(ev) => setNote(e.i, ev.target.value)} />
@@ -184,7 +186,8 @@ export default function Detail({ e }: { e: Employer }) {
             I’ve visited this booth
           </label>
           <p className={s.note} style={{ marginTop: 10 }}>
-            Saved on this phone only. Nothing is sent anywhere.
+            Tapping an outcome marks the booth visited. Everything is saved on this phone
+            only and feeds your follow-up list after the fair.
           </p>
         </Section>
 
