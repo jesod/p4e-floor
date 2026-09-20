@@ -40,3 +40,8 @@
   color:var(--ink);background:var(--surface-2);border:1px solid var(--rule);
   border-radius:var(--r);resize:vertical}
 .footNote{margin:24px 0 34px;font-size:12.5px;line-height:1.6;color:var(--ink-2)}
+
+.addTags{margin-top:10px}
+.addTags summary{font-size:13px;color:var(--court);font-weight:600;cursor:pointer;
+  min-height:36px;display:flex;align-items:center}
+.addTags[open] summary{margin-bottom:9px}

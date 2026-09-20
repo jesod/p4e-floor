@@ -2,7 +2,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { EMPLOYERS, EVENT, host } from "@/lib/data";
-import { usePlan, OUTCOME_LABEL, FOLLOW_WORTHY, STAGES, STAGE_LABEL, type Stage } from "@/lib/store";
+import { usePlan, OUTCOME_LABEL, FOLLOW_WORTHY, STAGES, type Stage } from "@/lib/store";
+import OutcomeChips from "@/components/OutcomeChips";
 import s from "./followup.module.css";
 
 /** The fair ends at 3:30 p.m. local. The 48-hour window starts there. */
@@ -108,10 +109,15 @@ export default function FollowUp() {
                   )}
                 </div>
 
-                {worth.length > 0 && (
+                {worth.length > 0 ? (
                   <div className={s.tags}>
                     {worth.map((w) => <span key={w} className={s.tag}>{OUTCOME_LABEL[w]}</span>)}
                   </div>
+                ) : (
+                  <details className={s.addTags}>
+                    <summary>Nothing captured — add it now</summary>
+                    <OutcomeChips id={e.i} compact />
+                  </details>
                 )}
 
                 <div className={s.stages} role="group" aria-label={`Status for ${e.n}`}>

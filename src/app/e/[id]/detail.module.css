@@ -30,7 +30,7 @@
 .domain+.domain{margin-top:16px;padding-top:16px;border-top:1px dashed var(--rule)}
 .domain{margin-top:14px}
 
-.textarea{width:100%;min-height:90px;padding:11px 12px;font:inherit;font-size:16px;
+.textarea{width:100%;min-height:90px;margin-top:14px;padding:11px 12px;font:inherit;font-size:16px;
   color:var(--ink);background:var(--surface);border:1px solid var(--rule);
   border-radius:var(--r);resize:vertical}
 .check{display:flex;align-items:center;gap:10px;margin-top:12px;
