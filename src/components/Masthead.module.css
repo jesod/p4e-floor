@@ -1,0 +1,8 @@
+.top{background:var(--ink);color:var(--bone);padding-block:10px 20px}
+.line{display:flex;align-items:center;justify-content:space-between;
+  margin-inline:-10px 0;padding-left:10px}
+.h1{font-size:clamp(30px,9vw,44px);line-height:.94;margin:2px 0 0;
+  text-transform:uppercase;letter-spacing:-.025em}
+.when{display:flex;flex-direction:column;gap:1px;margin:11px 0 0;
+  font-family:var(--font-mono),monospace;font-size:12px;letter-spacing:.01em;opacity:.66}
+.lead{margin:14px 0 0;font-size:14.5px;line-height:1.45;opacity:.82;max-width:44ch}

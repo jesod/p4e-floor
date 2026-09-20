@@ -1,0 +1,41 @@
+.navbar{position:sticky;top:0;z-index:40;background:var(--bone);border-bottom:1px solid var(--rule)}
+.navIn{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-block:6px}
+.back{display:inline-flex;align-items:center;gap:5px;min-height:var(--tap);
+  padding:0 10px 0 4px;background:none;border:0;color:var(--ink);font-weight:600;font-size:15px}
+.saveBtn{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 13px;
+  background:var(--surface);border:1px solid var(--rule);border-radius:999px;
+  color:var(--ink-2);font-size:13.5px;font-weight:600}
+.saveBtn[aria-pressed="true"]{background:var(--court);border-color:var(--court);color:var(--on-court)}
+
+.hero{background:var(--ink);color:var(--bone);padding-block:20px 24px}
+.heroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.boothLabel{margin:0;font-family:var(--font-display),sans-serif;font-weight:700;font-size:10.5px;
+  letter-spacing:.16em;text-transform:uppercase;opacity:.55}
+.booth{margin:1px 0 0;font-size:46px;font-weight:700;line-height:.95;letter-spacing:-.03em}
+.noBooth{margin:0;font-size:13.5px;opacity:.7;max-width:22ch;line-height:1.35}
+.where{margin:2px 0 0;text-align:right;font-family:var(--font-mono),monospace;
+  font-size:11.5px;line-height:1.5;opacity:.6}
+.h1{font-size:clamp(25px,6.6vw,34px);line-height:1.07;margin:18px 0 0;letter-spacing:-.022em}
+.sector{margin:7px 0 13px;font-size:14.5px;opacity:.72}
+.hero :global(.tag){background:rgba(255,255,255,.1);color:rgba(255,255,255,.88)}
+.hero :global(.tag--hire){background:rgba(255,255,255,.16);color:#fff}
+.hero :global(.tag--kw){background:var(--turf);color:#fff}
+
+.main{padding-block:4px 30px}
+.section{padding-block:20px;border-bottom:1px solid var(--rule)}
+.section h2{margin:0 0 9px}
+.strong{margin:0;font-family:var(--font-display),sans-serif;font-weight:700;font-size:16px;
+  letter-spacing:-.01em}
+.note{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin:6px 0 0}
+.domain+.domain{margin-top:16px;padding-top:16px;border-top:1px dashed var(--rule)}
+.domain{margin-top:14px}
+
+.textarea{width:100%;min-height:90px;padding:11px 12px;font:inherit;font-size:16px;
+  color:var(--ink);background:var(--surface);border:1px solid var(--rule);
+  border-radius:var(--r);resize:vertical}
+.check{display:flex;align-items:center;gap:10px;margin-top:12px;
+  font-size:15px;font-weight:600;min-height:var(--tap)}
+.check input{width:21px;height:21px;accent-color:var(--court)}
+
+.siteLink{margin:22px 0 0;font-family:var(--font-mono),monospace;font-size:14px}
+.backLink{margin:26px 0 0;font-size:14.5px}

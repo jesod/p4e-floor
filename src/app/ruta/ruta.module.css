@@ -1,0 +1,55 @@
+.quiet{color:var(--ink-2);padding-block:40px;text-align:center}
+.empty{padding-block:44px 40px;max-width:36ch}
+
+.top{background:var(--ink);color:var(--bone);padding-block:18px 22px}
+.h1{font-size:clamp(28px,8vw,38px);line-height:1;margin:3px 0 0;
+  text-transform:uppercase;letter-spacing:-.025em}
+.lead{margin:11px 0 18px;font-size:14px;line-height:1.5;opacity:.75;max-width:42ch}
+.progress{margin:9px 0 0;font-size:11.5px;letter-spacing:.06em;opacity:.6;text-transform:uppercase}
+
+/* riel de pasillos: cada celda es un pasillo real del recinto,
+   su ancho es cuántas paradas tuyas caen ahí */
+.railTitle{margin:0 0 8px;font-size:11.5px;line-height:1.35;opacity:.6}
+.rail{display:flex;gap:6px;align-items:flex-end}
+.railCell{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:4px}
+.railCell[data-empty="true"]{opacity:.38}
+.railBar{height:9px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.railWrap[data-dark="true"] .railBar{background:rgba(255,255,255,.18)}
+.railFill{height:100%;background:var(--court);border-radius:99px;
+  transition:width .28s cubic-bezier(.4,0,.2,1)}
+.railWrap[data-dark="true"] .railFill{background:var(--bone)}
+.railName{font-family:var(--font-display),sans-serif;font-weight:700;font-size:9.5px;
+  letter-spacing:.09em;text-transform:uppercase;text-align:center;opacity:.5}
+.railN{font-size:12px;font-weight:700;text-align:center;opacity:.75;line-height:1}
+.railCell[data-active="true"]{opacity:1}
+.railCell[data-active="true"] .railBar{box-shadow:0 0 0 2px currentColor}
+.railCell[data-active="true"] .railName,.railCell[data-active="true"] .railN{opacity:1}
+
+.cta{padding-block:18px 4px}
+.list{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--rule)}
+.reset{display:block;margin:28px auto 8px;background:none;border:0;
+  color:var(--ink-2);font-size:13.5px;text-decoration:underline;min-height:var(--tap)}
+
+/* ---- modo foco: una parada por pantalla ---- */
+.focus{padding-block:10px 0;min-height:70dvh}
+.focusHead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:14px}
+.close{background:none;border:0;color:var(--ink-2);font-size:14.5px;font-weight:600;
+  min-height:var(--tap);padding:0 6px 0 0}
+.pos{font-size:14px;font-weight:700;color:var(--ink-2);letter-spacing:.02em}
+
+.card{margin-top:20px}
+.aisle{margin:0;font-family:var(--font-display),sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--court)}
+.bigBooth{margin:2px 0 0;font-size:clamp(64px,22vw,96px);font-weight:700;
+  line-height:.86;letter-spacing:-.045em}
+.focusName{font-size:clamp(24px,7vw,32px);line-height:1.08;margin:16px 0 0;letter-spacing:-.022em}
+.focusSector{margin:6px 0 0;color:var(--ink-2);font-size:15px}
+.note{width:100%;min-height:86px;margin-top:20px;padding:11px 12px;font:inherit;font-size:16px;
+  color:var(--ink);background:var(--surface);border:1px solid var(--rule);
+  border-radius:var(--r);resize:vertical}
+.detailLink{margin:14px 0 0;font-size:14.5px}
+
+.actions{position:sticky;bottom:0;margin-top:26px;background:var(--bone);
+  border-top:1px solid var(--rule);padding-block:12px}
+.actionsIn{display:flex;gap:10px}

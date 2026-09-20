@@ -1,0 +1,10 @@
+.card{display:flex;align-items:center;gap:14px;margin-top:16px;padding:14px 15px;
+  background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);
+  color:inherit;text-decoration:none}
+.card[data-empty="true"]{background:var(--court);border-color:var(--court);color:var(--on-court)}
+.card:active{transform:translateY(1px)}
+.title{font-size:17px;line-height:1.2;margin:0;letter-spacing:-.015em}
+.sub{margin:5px 0 0;font-size:13px;line-height:1.45;opacity:.82}
+.eyebrowRow{display:flex;align-items:baseline;gap:10px;margin:0}
+.count{font-size:13px;font-weight:700;color:var(--court)}
+.arrow{flex:none;font-size:20px;opacity:.6}
