@@ -8,10 +8,13 @@ import HereNow from "@/components/HereNow";
 import { usePlan } from "@/lib/store";
 import s from "./route.module.css";
 
-export default function Ruta() {
-  const { plan, get, ready, toggleVisited, setNote, reset } = usePlan();
+export default function Route() {
+  const { plan, get, ready, setVisited, setNote, reset } = usePlan();
   const [focus, setFocus] = useState(false);
   const [here, setHere] = useState<string | null>(null);
+  // Booths deferred during this walk. Skipping must not claim you were there,
+  // so it parks the stop here instead of marking it visited.
+  const [skipped, setSkipped] = useState<string[]>([]);
 
   const saved = useMemo(
     () => EMPLOYERS.filter((e) => plan[e.i]?.saved).sort(byWalk),
@@ -38,7 +41,9 @@ export default function Ruta() {
   }, [saved, here, plan]);
 
   const done = route.filter((e) => plan[e.i]?.visited).length;
-  const next = route.find((e) => !plan[e.i]?.visited);
+  const unvisited = route.filter((e) => !plan[e.i]?.visited);
+  const remaining = unvisited.filter((e) => !skipped.includes(e.i));
+  const next = remaining[0];
 
   // The rail: how many of your stops fall in each real aisle of the hall.
   const rail = useMemo(
@@ -115,13 +120,13 @@ export default function Ruta() {
         <div className={s.actions}>
           <div className={`wrap ${s.actionsIn}`}>
             <button className="btn" onClick={() => {
-              const after = route.slice(pos);
-              const skip = after.find((e) => !plan[e.i]?.visited);
-              if (!skip) setFocus(false);
-              else toggleVisited(next.i);
-            }}>Skip</button>
+              // Nothing left to come back to, so end the walk rather than
+              // parking the last stop where it can never resurface.
+              if (remaining.length <= 1) { setSkipped([]); setFocus(false); }
+              else setSkipped((prev) => [...prev, next.i]);
+            }}>Skip for now</button>
             <button className="btn btn--primary" style={{ flex: 1 }}
-              onClick={() => { if (!st.visited) toggleVisited(next.i); }}>
+              onClick={() => setVisited(next.i, true)}>
               {st.tags.length ? "Next stop" : "Visited"}
             </button>
           </div>
@@ -148,10 +153,13 @@ export default function Ruta() {
       </header>
 
       <main className="wrap">
-        {next && (
+        {unvisited.length > 0 && (
           <div className={s.cta}>
-            <button className="btn btn--primary btn--block" onClick={() => setFocus(true)}>
-              {done === 0 ? "Start walking" : "Continue from booth " + (next.b ?? "—")}
+            {/* Start each walk from a clean slate, so anything skipped last time
+                comes back around instead of disappearing. */}
+            <button className="btn btn--primary btn--block"
+              onClick={() => { setSkipped([]); setFocus(true); }}>
+              {done === 0 ? "Start walking" : "Continue from booth " + (unvisited[0].b ?? "—")}
             </button>
           </div>
         )}

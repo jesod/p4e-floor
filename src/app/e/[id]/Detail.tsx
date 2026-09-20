@@ -1,17 +1,28 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Employer } from "@/lib/types";
 import { HIRING, BLOCKING, ELIGIBILITY, SECURITY, AISLE_LABEL, PAIRED, host } from "@/lib/data";
-import { usePlan } from "@/lib/store";
+import { usePlan, type MyEl } from "@/lib/store";
 import OutcomeChips from "@/components/OutcomeChips";
 import s from "./detail.module.css";
 
+const MY_EL: { k: MyEl; label: string }[] = [
+  { k: "open", label: "No PR needed" },
+  { k: "needs", label: "Needs PR or citizenship" },
+];
+
 export default function Detail({ e }: { e: Employer }) {
   const router = useRouter();
-  const { get, toggleSaved, toggleVisited, setNote, ready } = usePlan();
+  const { get, toggleSaved, toggleVisited, setNote, setMyEl, addContact, removeContact, ready } = usePlan();
   const st = get(e.i);
   const blocked = e.el && BLOCKING.has(e.el.v);
+
+  const [cName, setCName] = useState("");
+  const [cRole, setCRole] = useState("");
+  const [cInfo, setCInfo] = useState("");
+  const canAdd = Boolean(cName.trim() || cRole.trim() || cInfo.trim());
 
   return (
     <>
@@ -149,6 +160,22 @@ export default function Detail({ e }: { e: Employer }) {
           </Section>
         )}
 
+        <Section title="What you found out · your own note">
+          <p className={s.note} style={{ margin: "0 0 10px" }}>
+            {e.el
+              ? "We already have a published policy for this one, above. Record what you were told if it differs."
+              : "P4E doesn’t publish whether this employer needs PR or citizenship, and we found nothing to cite. If you ask at the booth, keep the answer here."}
+          </p>
+          <div className={s.seg}>
+            {MY_EL.map((o) => (
+              <button key={o.k} className="chip" aria-pressed={st.myEl === o.k}
+                onClick={() => setMyEl(e.i, st.myEl === o.k ? "" : o.k)}>
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </Section>
+
         <Section title="At the booth">
           <OutcomeChips id={e.i} compact />
           <textarea className={s.textarea} value={st.note} rows={3}
@@ -162,6 +189,36 @@ export default function Detail({ e }: { e: Employer }) {
             Tapping an outcome marks the booth visited. Everything is saved on this phone
             only and feeds your follow-up list after the fair.
           </p>
+        </Section>
+
+        <Section title="People you met">
+          {st.contacts.length > 0 && (
+            <ul className={s.contacts}>
+              {st.contacts.map((c, i) => (
+                <li key={`${c.name}-${i}`} className={s.contact}>
+                  <div>
+                    <p className={s.strong}>{c.name || "Someone at the booth"}</p>
+                    {c.role && <p className={s.note} style={{ margin: 0 }}>{c.role}</p>}
+                    {c.info && <p className={s.contactInfo}>{c.info}</p>}
+                  </div>
+                  <button className={s.del} onClick={() => removeContact(e.i, i)}
+                    aria-label={`Remove ${c.name || "contact"}`}>Remove</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className={s.contactForm}>
+            <input className={s.input} value={cName} onChange={(ev) => setCName(ev.target.value)}
+              placeholder="Name" autoComplete="off" aria-label="Contact name" />
+            <input className={s.input} value={cRole} onChange={(ev) => setCRole(ev.target.value)}
+              placeholder="Role or team" autoComplete="off" aria-label="Contact role" />
+            <input className={s.input} value={cInfo} onChange={(ev) => setCInfo(ev.target.value)}
+              placeholder="Email, phone or LinkedIn" autoComplete="off" aria-label="Contact details" />
+            <button className="btn btn--block" disabled={!canAdd} onClick={() => {
+              addContact(e.i, { name: cName.trim(), role: cRole.trim(), info: cInfo.trim() });
+              setCName(""); setCRole(""); setCInfo("");
+            }}>Add contact</button>
+          </div>
         </Section>
 
         <p className={s.siteLink}>
