@@ -21,7 +21,7 @@ export default function Detail({ e }: { e: Employer }) {
               strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M14.5 5 8 12l6.5 7" />
             </svg>
-            Volver
+            Back
           </button>
           <button className={s.saveBtn} aria-pressed={ready && st.saved} onClick={() => toggleSaved(e.i)}>
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"
@@ -29,7 +29,7 @@ export default function Detail({ e }: { e: Employer }) {
               strokeWidth="1.9" strokeLinejoin="round">
               <path d="M6.5 3.8h11a1 1 0 0 1 1 1v15.4l-6.5-4-6.5 4V4.8a1 1 0 0 1 1-1Z" />
             </svg>
-            {ready && st.saved ? "En mi recorrido" : "Agregar al recorrido"}
+            {ready && st.saved ? "On my route" : "Add to my route"}
           </button>
         </div>
       </div>
@@ -43,12 +43,12 @@ export default function Detail({ e }: { e: Employer }) {
                 <p className={`mono ${s.booth}`}>{e.b}</p>
               </div>
             ) : (
-              <p className={s.noBooth}>Sin booth asignado en el plano de P4E</p>
+              <p className={s.noBooth}>No booth assigned on P4E’s floorplan</p>
             )}
             {e.a && (
               <p className={s.where}>
                 {AISLE_LABEL[e.a]}
-                {e.b && PAIRED[e.b[0]] && <><br />isla con la columna {PAIRED[e.b[0]]}</>}
+                {e.b && PAIRED[e.b[0]] && <><br />island with column {PAIRED[e.b[0]]}</>}
               </p>
             )}
           </div>
@@ -61,7 +61,7 @@ export default function Detail({ e }: { e: Employer }) {
             {HIRING.filter((h) => e.h[h.i]).map((h) => (
               <span key={h.k} className="tag tag--hire">{h.label}</span>
             ))}
-            {e.kw === 1 && <span className="tag tag--kw">Sede local KW</span>}
+            {e.kw === 1 && <span className="tag tag--kw">Based in KW</span>}
           </div>
         </div>
       </header>
@@ -80,7 +80,7 @@ export default function Detail({ e }: { e: Employer }) {
         )}
 
         {e.el && !blocked && (
-          <Section title="Elegibilidad · verificada con fuente">
+          <Section title="Eligibility · verified against a source">
             <p className={s.strong}>{ELIGIBILITY[e.el.v]}</p>
             <p className="quote">“{e.el.q}”</p>
             <Source url={e.el.s} />
@@ -88,36 +88,36 @@ export default function Detail({ e }: { e: Employer }) {
         )}
 
         {e.sr && (
-          <Section title="Requisito de seguridad">
+          <Section title="Security requirement">
             <p className={s.strong}>{SECURITY[e.sr.v] ?? e.sr.v}</p>
-            <p className={s.note}>Aplica por puesto. No implica restricción de nacionalidad.</p>
+            <p className={s.note}>Applies per role. It does not mean a nationality requirement.</p>
             <p className="quote">“{e.sr.q}”</p>
             <Source url={e.sr.s} />
           </Section>
         )}
 
-        <Section title="Categorías de puesto · PDF oficial de P4E">
+        <Section title="Job categories · P4E’s official PDF">
           {e.c.length ? (
             <div className="tags" style={{ marginTop: 0 }}>
               {e.c.map((c) => <span key={c} className="tag">{c}</span>)}
             </div>
           ) : (
-            <p className={s.note}>No figura en el PDF de categorías de puesto de P4E.</p>
+            <p className={s.note}>Not listed in P4E’s job-category PDF.</p>
           )}
         </Section>
 
         {e.t && (
-          <Section title="Cómo se describe la empresa">
+          <Section title="How they describe themselves">
             <p style={{ margin: 0 }}>{e.t}</p>
             <Source url={e.w} />
           </Section>
         )}
 
         {e.sd && e.sd.length > 0 && (
-          <Section title="Sectores a los que dice servir">
+          <Section title="Sectors they say they serve">
             <p className={s.note}>
-              Sale del texto de su propio sitio. Describe a quién le <b>vende</b> la empresa, no
-              necesariamente qué perfiles <b>contrata</b>.
+              Taken from their own website. It describes who they <b>sell to</b>, not necessarily
+              who they <b>hire</b>.
             </p>
             {e.sd.slice(0, 5).map((d) => (
               <div key={d.d} className={s.domain}>
@@ -130,41 +130,41 @@ export default function Detail({ e }: { e: Employer }) {
         )}
 
         {e.hq && (
-          <Section title="Sede · verificada con fuente">
+          <Section title="Head office · verified against a source">
             <p style={{ margin: 0 }}>{e.hq.c}, {e.hq.r}</p>
             <Source url={e.hq.s} />
           </Section>
         )}
 
         {e.g && e.g.length > 0 && (
-          <Section title="Gaps de la fuente oficial">
+          <Section title="Gaps in the official source">
             {e.g.map((g) => (
               <p key={g} className={s.note} style={{ margin: 0 }}>
                 {g === "no_booth_in_floorplan"
-                  ? "Aparece en las listas de empleadores de P4E pero no en el floorplan. Confirmá el booth en el mostrador de registro."
-                  : "No figura en el PDF de categorías de puesto de P4E."}
+                  ? "Listed among P4E’s employers but missing from the floorplan. Confirm the booth at the registration desk."
+                  : "Not listed in P4E’s job-category PDF."}
               </p>
             ))}
           </Section>
         )}
 
-        <Section title="Tus notas">
+        <Section title="Your notes">
           <textarea className={s.textarea} value={st.note} rows={3}
-            placeholder="Con quién hablaste, qué te pidieron, qué seguir…"
+            placeholder="Who you spoke to, what they asked for, what to follow up on…"
             onChange={(ev) => setNote(e.i, ev.target.value)} />
           <label className={s.check}>
             <input type="checkbox" checked={ready && st.visited} onChange={() => toggleVisited(e.i)} />
-            Ya visité este booth
+            I’ve visited this booth
           </label>
           <p className={s.note} style={{ marginTop: 10 }}>
-            Se guarda solo en este teléfono. No se envía a ningún lado.
+            Saved on this phone only. Nothing is sent anywhere.
           </p>
         </Section>
 
         <p className={s.siteLink}>
           <a href={e.w} target="_blank" rel="noopener noreferrer">{host(e.w)} ↗</a>
         </p>
-        <p className={s.backLink}><Link href="/">← Todos los empleadores</Link></p>
+        <p className={s.backLink}><Link href="/">← All employers</Link></p>
       </main>
     </>
   );

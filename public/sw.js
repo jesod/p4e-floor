@@ -1,12 +1,12 @@
 /* P4E Floor — service worker
-   Objetivo concreto: RIM Park con 3000 personas adentro tiene señal pésima.
-   La app tiene que abrir igual. */
-const VERSION = "p4e-v1";
+   The point: RIM Park with 3000 people inside has terrible signal.
+   The app still has to open. */
+const VERSION = "p4e-v2";
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-rt`;
 
-// Pantallas que tienen que estar sí o sí, aunque el teléfono esté sin datos.
-const PRECACHE = ["/", "/ruta", "/plano", "/perfil", "/fuentes", "/manifest.webmanifest",
+// Screens that must be there even with no data connection.
+const PRECACHE = ["/", "/route", "/floor", "/profile", "/sources", "/manifest.webmanifest",
                   "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (ev) => {
@@ -33,7 +33,7 @@ self.addEventListener("fetch", (ev) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Los assets de Next llevan hash: si están en caché, no vuelven a pedirse nunca.
+  // Next assets are hashed: once cached, never fetched again.
   if (url.pathname.startsWith("/_next/static/")) {
     ev.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
@@ -45,8 +45,8 @@ self.addEventListener("fetch", (ev) => {
     return;
   }
 
-  // Todo lo demás: red primero (para que una lista actualizada llegue),
-  // con la copia en caché como red de contención cuando no hay señal.
+  // Everything else: network first (so an updated list arrives), with the
+  // cached copy as the safety net when there is no signal.
   ev.respondWith(
     fetch(req)
       .then((res) => {

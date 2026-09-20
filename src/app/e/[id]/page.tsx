@@ -10,10 +10,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const e = byId.get(id);
-  if (!e) return { title: "Empleador no encontrado" };
+  if (!e) return { title: "Employer not found" };
   return {
-    title: `${e.n} — booth ${e.b ?? "sin asignar"} · P4E Floor`,
-    description: e.t || `${e.sec}. Booth ${e.b ?? "sin asignar"} en la P4E Fall Job Fair 2026.`,
+    title: `${e.n} — booth ${e.b ?? "unassigned"} · P4E Floor`,
+    description: e.t || `${e.sec}. Booth ${e.b ?? "unassigned"} at the P4E Fall Job Fair 2026.`,
   };
 }
 

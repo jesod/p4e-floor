@@ -41,39 +41,39 @@ export default function FilterSheet({
   return (
     <div className={s.scrim} onClick={onClose}>
       <div className={s.sheet} ref={panel} tabIndex={-1} role="dialog" aria-modal="true"
-        aria-label="Filtros" onClick={(ev) => ev.stopPropagation()}>
+        aria-label="Filters" onClick={(ev) => ev.stopPropagation()}>
         <div className={s.grab} aria-hidden="true" />
         <div className={s.head}>
-          <h2 className="display" style={{ fontSize: 20, margin: 0 }}>Filtros</h2>
+          <h2 className="display" style={{ fontSize: 20, margin: 0 }}>Filters</h2>
           {n > 0 && (
             <button className={s.clear} onClick={() => onChange(NO_FILTERS)}>
-              Limpiar {n}
+              Clear {n}
             </button>
           )}
         </div>
 
         <div className={s.scroll}>
-          <Group title="Qué estás buscando">
+          <Group title="What you’re looking for">
             {HIRING.map((h) => (
               <Chip key={h.k} label={h.label} n={EMPLOYERS.filter((e) => e.h[h.i]).length}
                 on={value.hire.includes(h.k)}
                 onClick={() => onChange({ ...value, hire: toggle(value.hire, h.k) })} />
             ))}
-            <p className={s.hint}>Con más de uno marcado, mostramos solo quienes ofrecen todo eso.</p>
+            <p className={s.hint}>With more than one selected, we only show employers offering all of them.</p>
           </Group>
 
-          <Group title="Elegibilidad y cercanía">
-            <Chip label="Sede en la región KW" n={N_KW} on={value.kw}
+          <Group title="Eligibility and location">
+            <Chip label="Head office in the KW region" n={N_KW} on={value.kw}
               onClick={() => onChange({ ...value, kw: !value.kw })} />
-            <Chip label="Ocultar los que exigen ciudadanía o PR" n={N_BLOCK} on={value.noblock}
+            <Chip label="Hide the ones requiring citizenship or PR" n={N_BLOCK} on={value.noblock}
               onClick={() => onChange({ ...value, noblock: !value.noblock })} />
             <p className={s.hint}>
-              Solo contamos los {N_BLOCK} casos donde encontramos la política publicada. Del resto no
-              afirmamos nada.
+              We only count the {N_BLOCK} cases where we found the policy published. We make no
+              claim about the rest.
             </p>
           </Group>
 
-          <Group title="Industria">
+          <Group title="Industry">
             {INDUSTRIES.map((v) => (
               <Chip key={v} label={v} n={EMPLOYERS.filter((e) => e.ind === v).length}
                 on={value.ind.includes(v)}
@@ -81,7 +81,7 @@ export default function FilterSheet({
             ))}
           </Group>
 
-          <Group title="Categoría de puesto · vocabulario oficial de P4E">
+          <Group title="Job category · P4E’s own wording">
             {CATEGORIES.map((v) => (
               <Chip key={v} label={v} n={EMPLOYERS.filter((e) => e.c.includes(v)).length}
                 on={value.cat.includes(v)}
@@ -92,7 +92,7 @@ export default function FilterSheet({
 
         <div className={s.foot}>
           <button className="btn btn--primary btn--block" onClick={onClose}>
-            Ver {resultCount} {resultCount === 1 ? "empleador" : "empleadores"}
+            Show {resultCount} {resultCount === 1 ? "employer" : "employers"}
           </button>
         </div>
       </div>

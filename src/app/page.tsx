@@ -10,8 +10,8 @@ import s from "./page.module.css";
 
 type Sort = "walk" | "col" | "name";
 const SORTS: { k: Sort; label: string }[] = [
-  { k: "walk", label: "Recorrido" },
-  { k: "col", label: "Columna" },
+  { k: "walk", label: "Walking order" },
+  { k: "col", label: "Column" },
   { k: "name", label: "A–Z" },
 ];
 
@@ -61,7 +61,7 @@ export default function Home() {
 
   return (
     <>
-      <Masthead lead="160 empleadores sobre el plano real del recinto. Filtrá acá, armá tu recorrido, y el miércoles caminá el piso una sola vez." />
+      <Masthead lead="All 160 employers on the real floorplan. Filter here, build your route, and walk the floor once on Wednesday." />
 
       <div className={s.bar}>
         <div className={`wrap ${s.barIn}`}>
@@ -71,12 +71,12 @@ export default function Home() {
               <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.6-3.6" />
             </svg>
             <input value={q} onChange={(ev) => setQ(ev.target.value)} type="search"
-              placeholder="UX, machine learning, telecom, nuclear…" aria-label="Buscar empleadores"
+              placeholder="UX, machine learning, telecom, nuclear…" aria-label="Search employers"
               enterKeyHint="search" autoComplete="off" />
-            {q && <button className={s.x} onClick={() => setQ("")} aria-label="Borrar búsqueda">×</button>}
+            {q && <button className={s.x} onClick={() => setQ("")} aria-label="Clear search">×</button>}
           </div>
           <button className={`btn ${nf ? "btn--primary" : ""} ${s.filterBtn}`} onClick={() => setSheet(true)}>
-            Filtros{nf > 0 && <span className="mono" style={{ fontSize: 12 }}>{nf}</span>}
+            Filters{nf > 0 && <span className="mono" style={{ fontSize: 12 }}>{nf}</span>}
           </button>
         </div>
       </div>
@@ -85,10 +85,10 @@ export default function Home() {
         <ProfileCard />
         <div className={s.status}>
           <p className={s.count}>
-            <b className="mono">{hits.length}</b> de {EMPLOYERS.length}
-            {q && <> para <b>“{q}”</b></>}
+            <b className="mono">{hits.length}</b> of {EMPLOYERS.length}
+            {q && <> for <b>“{q}”</b></>}
           </p>
-          <div className={s.seg} role="group" aria-label="Ordenar">
+          <div className={s.seg} role="group" aria-label="Sort">
             {SORTS.map((o) => (
               <button key={o.k} className={s.segBtn} aria-pressed={sort === o.k}
                 onClick={() => setSort(o.k)}>{o.label}</button>
@@ -98,22 +98,22 @@ export default function Home() {
 
         {hits.length === 0 ? (
           <div className={s.empty}>
-            <p className="display" style={{ fontSize: 19, margin: "0 0 6px" }}>Nada con esos filtros</p>
+            <p className="display" style={{ fontSize: 19, margin: "0 0 6px" }}>Nothing matches those filters</p>
             <p style={{ margin: "0 0 18px", color: "var(--ink-2)", fontSize: 14.5 }}>
-              Probá con menos condiciones, o buscá por booth (“H11”) o por lo que hacés.
+              Try fewer conditions, or search by booth (“H11”) or by what you do.
             </p>
             <button className="btn" onClick={() => { setQ(""); setFilters(NO_FILTERS); }}>
-              Limpiar todo
+              Clear everything
             </button>
           </div>
         ) : groups ? (
           groups.map(([col, rows]) => (
             <section key={col}>
               <h2 className={s.group}>
-                <span className="display">{col === "—" ? "Sin booth" : `Columna ${col}`}</span>
+                <span className="display">{col === "—" ? "No booth" : `Column ${col}`}</span>
                 <span className={s.groupSub}>
-                  {rows.length} {rows.length === 1 ? "empleador" : "empleadores"}
-                  {PAIRED[col] && <> · isla compartida con {PAIRED[col]}</>}
+                  {rows.length} {rows.length === 1 ? "employer" : "employers"}
+                  {PAIRED[col] && <> · shares an island with column {PAIRED[col]}</>}
                 </span>
               </h2>
               <ul className={s.list}>

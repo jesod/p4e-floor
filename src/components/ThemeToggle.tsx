@@ -19,7 +19,7 @@ export default function ThemeToggle() {
     setDark(next);
   };
   return (
-    <button onClick={flip} aria-label="Cambiar entre tema claro y oscuro"
+    <button onClick={flip} aria-label="Switch between light and dark"
       style={{ background: "none", border: 0, color: "inherit", opacity: .7,
         width: 44, height: 44, display: "grid", placeContent: "center" }}>
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"

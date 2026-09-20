@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-/** Autorización de trabajo. Cruza contra work_eligibility, que solo tiene casos con fuente. */
+/** Work authorization. Cross-checked against work_eligibility, which only holds sourced cases. */
 export type Auth = "citizen" | "pr" | "permit" | "unsure";
 export type Seeking = "coop" | "summer" | "ft27" | "ftal";
 
@@ -9,8 +9,8 @@ export type Profile = {
   school?: "conestoga" | "guelph" | "waterloo" | "laurier";
   auth?: Auth;
   seeking: Seeking[];
-  fields: string[];      // claves de FIELDS
-  localOnly: boolean;    // prioriza sede verificada en la región KW
+  fields: string[];      // keys from FIELDS
+  localOnly: boolean;    // favour employers with a verified head office in the KW region
   done: boolean;
 };
 
@@ -20,43 +20,43 @@ export const SCHOOLS = [
   { k: "conestoga", label: "Conestoga College" },
   { k: "guelph", label: "University of Guelph" },
   { k: "waterloo", label: "University of Waterloo" },
-  { k: "laurier", label: "Wilfrid Laurier" },
+  { k: "laurier", label: "Wilfrid Laurier University" },
 ] as const;
 
 export const AUTHS: { k: Auth; label: string; sub: string }[] = [
-  { k: "citizen", label: "Ciudadanía canadiense", sub: "Ningún empleador te queda afuera por nacionalidad" },
-  { k: "pr", label: "Residencia permanente", sub: "Quedan afuera los que exigen ciudadanía" },
-  { k: "permit", label: "Permiso de estudio o trabajo", sub: "Incluye co-op work permit y PGWP" },
-  { k: "unsure", label: "Prefiero no decirlo", sub: "No filtramos nada por este campo" },
+  { k: "citizen", label: "Canadian citizen", sub: "No employer is off-limits to you on nationality" },
+  { k: "pr", label: "Permanent resident", sub: "Rules out the ones that require citizenship" },
+  { k: "permit", label: "Study or work permit", sub: "Includes co-op work permits and the PGWP" },
+  { k: "unsure", label: "Rather not say", sub: "We won't filter anything on this" },
 ];
 
 export const SEEKING: { k: Seeking; label: string }[] = [
   { k: "coop", label: "Co-op" },
-  { k: "summer", label: "Verano" },
-  { k: "ft27", label: "Full-time, me gradúo en 2027" },
-  { k: "ftal", label: "Full-time, ya me gradué" },
+  { k: "summer", label: "Summer" },
+  { k: "ft27", label: "Full-time, graduating 2027" },
+  { k: "ftal", label: "Full-time, already graduated" },
 ];
 
 /**
- * Áreas en el idioma del estudiante, mapeadas a las categorías oficiales de P4E.
- * `domains` usa lo que la propia empresa dice en su sitio: es el único camino para
- * áreas que P4E no contempla, como diseño de producto.
+ * Fields in the student's own words, mapped onto P4E's official categories.
+ * `domains` uses what the employer says on its own site: that's the only route
+ * for fields P4E has no category for, such as product design.
  */
 export const FIELDS: { k: string; label: string; cats: string[]; domains: string[] }[] = [
-  { k: "eng", label: "Ingeniería", cats: ["Engineering"], domains: ["Mechanical Engineering", "Civil / Structural", "Electrical / Power", "Chemical / Process"] },
-  { k: "soft", label: "Software y computación", cats: ["Information Technology/Software Development"], domains: ["Software Engineering", "Cloud / DevOps", "Embedded / Firmware"] },
-  { k: "data", label: "Datos e inteligencia artificial", cats: ["Information Technology/Software Development", "Research"], domains: ["AI / Machine Learning", "Data Science / Analytics"] },
-  { k: "design", label: "Diseño y UX", cats: [], domains: ["UX / Product Design", "Product Management"] },
-  { k: "biz", label: "Negocios y finanzas", cats: ["Finance/Accounting/Insurance", "Management/Consulting", "Sales/Business Development"], domains: ["Finance / Investment", "Accounting / Audit", "Insurance"] },
-  { k: "mkt", label: "Marketing y comunicación", cats: ["Marketing/Advertising", "Communications/Public Relations"], domains: ["Marketing / Communications"] },
-  { k: "sci", label: "Ciencias y salud", cats: ["Scientific/Healthcare", "Research"], domains: ["Healthcare / Clinical", "Nuclear"] },
-  { k: "env", label: "Ambiente y sustentabilidad", cats: ["Environmental/Resource Management"], domains: ["Environmental / Sustainability", "GIS / Geomatics"] },
-  { k: "ops", label: "Logística y operaciones", cats: ["Supply Chain/Operations Management"], domains: ["Supply Chain / Logistics", "Manufacturing / Lean"] },
-  { k: "hr", label: "Recursos humanos", cats: ["Human Resources"], domains: ["Human Resources"] },
-  { k: "trades", label: "Oficios y construcción", cats: ["Trades", "Architecture/Interior Design"], domains: ["Construction Management"] },
-  { k: "social", label: "Social, educación y comunidad", cats: ["Social Service", "Teaching", "Recreation/Leisure/Tourism"], domains: ["Social Services", "Education / Teaching"] },
-  { k: "safety", label: "Seguridad pública", cats: ["Police/Security"], domains: [] },
-  { k: "aero", label: "Aeroespacial y defensa", cats: [], domains: ["Aerospace / Space", "Telecom / Networks", "Robotics / Automation"] },
+  { k: "eng", label: "Engineering", cats: ["Engineering"], domains: ["Mechanical Engineering", "Civil / Structural", "Electrical / Power", "Chemical / Process"] },
+  { k: "soft", label: "Software & computing", cats: ["Information Technology/Software Development"], domains: ["Software Engineering", "Cloud / DevOps", "Embedded / Firmware"] },
+  { k: "data", label: "Data & AI", cats: ["Information Technology/Software Development", "Research"], domains: ["AI / Machine Learning", "Data Science / Analytics"] },
+  { k: "design", label: "Design & UX", cats: [], domains: ["UX / Product Design", "Product Management"] },
+  { k: "biz", label: "Business & finance", cats: ["Finance/Accounting/Insurance", "Management/Consulting", "Sales/Business Development"], domains: ["Finance / Investment", "Accounting / Audit", "Insurance"] },
+  { k: "mkt", label: "Marketing & communications", cats: ["Marketing/Advertising", "Communications/Public Relations"], domains: ["Marketing / Communications"] },
+  { k: "sci", label: "Science & health", cats: ["Scientific/Healthcare", "Research"], domains: ["Healthcare / Clinical", "Nuclear"] },
+  { k: "env", label: "Environment & sustainability", cats: ["Environmental/Resource Management"], domains: ["Environmental / Sustainability", "GIS / Geomatics"] },
+  { k: "ops", label: "Supply chain & operations", cats: ["Supply Chain/Operations Management"], domains: ["Supply Chain / Logistics", "Manufacturing / Lean"] },
+  { k: "hr", label: "Human resources", cats: ["Human Resources"], domains: ["Human Resources"] },
+  { k: "trades", label: "Skilled trades & construction", cats: ["Trades", "Architecture/Interior Design"], domains: ["Construction Management"] },
+  { k: "social", label: "Social work, teaching & community", cats: ["Social Service", "Teaching", "Recreation/Leisure/Tourism"], domains: ["Social Services", "Education / Teaching"] },
+  { k: "safety", label: "Policing & public safety", cats: ["Police/Security"], domains: [] },
+  { k: "aero", label: "Aerospace & defence", cats: [], domains: ["Aerospace / Space", "Telecom / Networks", "Robotics / Automation"] },
 ];
 
 const KEY = "p4e.profile.v1";
@@ -79,6 +79,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 }
 export function useProfile() {
   const c = useContext(C);
-  if (!c) throw new Error("useProfile fuera de ProfileProvider");
+  if (!c) throw new Error("useProfile used outside ProfileProvider");
   return c;
 }

@@ -14,7 +14,7 @@ export default function Masthead({ lead }: { lead?: string }) {
         </div>
         <h1 className={`display ${s.h1}`}>Fall Job Fair 2026</h1>
         <p className={s.when}>
-          <span>Miércoles 23 de septiembre · 9:30–15:30</span>
+          <span>Wednesday, September 23 · 9:30 a.m.–3:30 p.m.</span>
           <span>{EVENT.venue}, Waterloo</span>
         </p>
         {lead && <p className={s.lead}>{lead}</p>}

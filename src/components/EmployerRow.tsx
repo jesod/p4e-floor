@@ -15,11 +15,11 @@ export default function EmployerRow({ e, why, stop }: { e: Employer; why?: Why; 
       <Link href={`/e/${e.i}`} className={s.hit}>
         {e.b ? (
           <span className="booth booth--sm">
-            {stop != null && <span className={s.stop}>{stop}</span>}
+            {stop != null && <span className={s.stop}>stop {stop}</span>}
             {e.b}
           </span>
         ) : (
-          <span className="booth booth--sm booth--none">sin booth</span>
+          <span className="booth booth--sm booth--none">no booth</span>
         )}
         <span className={s.body}>
           <span className={s.name}>{e.n}</span>
@@ -29,7 +29,7 @@ export default function EmployerRow({ e, why, stop }: { e: Employer; why?: Why; 
           </span>
           <span className="tags">
             {blocked && <span className="tag tag--flag">{ELIGIBILITY[e.el!.v]}</span>}
-            {e.kw === 1 && <span className="tag tag--kw">Sede local KW</span>}
+            {e.kw === 1 && <span className="tag tag--kw">Based in KW</span>}
             {HIRING.filter((h) => e.h[h.i]).map((h) => (
               <span key={h.k} className="tag tag--hire">{h.label}</span>
             ))}
@@ -45,7 +45,7 @@ export default function EmployerRow({ e, why, stop }: { e: Employer; why?: Why; 
       <button
         className={s.save}
         aria-pressed={ready && st.saved}
-        aria-label={st.saved ? `Quitar ${e.n} de mi recorrido` : `Agregar ${e.n} a mi recorrido`}
+        aria-label={st.saved ? `Remove ${e.n} from my route` : `Add ${e.n} to my route`}
         onClick={() => toggleSaved(e.i)}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"

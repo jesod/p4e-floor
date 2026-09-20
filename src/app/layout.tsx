@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "P4E Floor", statusBarStyle: "black-translucent" },
   title: "P4E Floor — Fall Job Fair 2026",
   description:
-    "Los 160 empleadores de la P4E Fall Job Fair sobre el plano real del recinto. Filtrá, armá tu recorrido y caminá el piso una sola vez.",
+    "All 160 employers at the P4E Fall Job Fair, on the real floorplan. Filter, build your route, and walk the floor once.",
 };
 
 export const viewport: Viewport = {
@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="en">
       <body className={`${display.variable} ${body.variable} ${mono.variable}`}>
         <ProfileProvider>
           <PlanProvider>

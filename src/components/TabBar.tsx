@@ -4,10 +4,10 @@ import { usePathname } from "next/navigation";
 import { usePlan } from "@/lib/store";
 
 const TABS = [
-  { href: "/", label: "Empleadores", icon: "list" },
-  { href: "/plano", label: "Plano", icon: "map" },
-  { href: "/ruta", label: "Mi recorrido", icon: "route" },
-  { href: "/fuentes", label: "Fuentes", icon: "source" },
+  { href: "/", label: "Employers", icon: "list" },
+  { href: "/floor", label: "Floor", icon: "map" },
+  { href: "/route", label: "My route", icon: "route" },
+  { href: "/sources", label: "Sources", icon: "source" },
 ] as const;
 
 function Icon({ name }: { name: string }) {
@@ -26,7 +26,7 @@ export default function TabBar() {
   const path = usePathname();
   const { savedIds, ready } = usePlan();
   return (
-    <nav className="tabbar" aria-label="Secciones">
+    <nav className="tabbar" aria-label="Sections">
       <div className="tabbar-in">
         {TABS.map((t) => {
           const active = t.href === "/" ? path === "/" : path.startsWith(t.href);
