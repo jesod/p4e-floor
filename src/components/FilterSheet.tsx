@@ -1,19 +1,40 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { EMPLOYERS, HIRING, BLOCKING } from "@/lib/data";
+import { EMPLOYERS, HIRING } from "@/lib/data";
+import { blockedFor } from "@/lib/presets";
+import { AUTHS, type Auth } from "@/lib/profile";
+import { usePlan, type MyEl } from "@/lib/store";
 import s from "./FilterSheet.module.css";
 
 export type Filters = {
-  hire: string[]; ind: string[]; cat: string[]; kw: boolean; noblock: boolean;
+  hire: string[]; ind: string[]; cat: string[]; kw: boolean;
+  /** Declared work authorisation. "" means we filter nothing on eligibility. */
+  auth: Auth | "";
+  /** What you recorded yourself: "open" | "needs" | "none" (not yet recorded). */
+  mine: string[];
 };
-export const NO_FILTERS: Filters = { hire: [], ind: [], cat: [], kw: false, noblock: false };
+export const NO_FILTERS: Filters = { hire: [], ind: [], cat: [], kw: false, auth: "", mine: [] };
 export const countFilters = (f: Filters) =>
-  f.hire.length + f.ind.length + f.cat.length + (f.kw ? 1 : 0) + (f.noblock ? 1 : 0);
+  f.hire.length + f.ind.length + f.cat.length + (f.kw ? 1 : 0) +
+  (f.auth && f.auth !== "unsure" ? 1 : 0) + f.mine.length;
 
 const INDUSTRIES = [...new Set(EMPLOYERS.map((e) => e.ind))].sort();
 const CATEGORIES = [...new Set(EMPLOYERS.flatMap((e) => e.c))].sort();
 const N_KW = EMPLOYERS.filter((e) => e.kw === 1).length;
-const N_BLOCK = EMPLOYERS.filter((e) => e.el && BLOCKING.has(e.el.v)).length;
+
+/** How many of the sourced cases each status actually rules out. */
+const RULED_OUT: Record<string, number> = Object.fromEntries(
+  AUTHS.map((a) => {
+    const blocked = blockedFor(a.k);
+    return [a.k, EMPLOYERS.filter((e) => e.el && blocked.has(e.el.v)).length];
+  })
+);
+
+const MINE: { k: string; label: string }[] = [
+  { k: "open", label: "I found: no PR needed" },
+  { k: "needs", label: "I found: needs PR or citizenship" },
+  { k: "none", label: "I haven’t checked yet" },
+];
 
 const toggle = (arr: string[], v: string) =>
   arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
@@ -25,6 +46,7 @@ export default function FilterSheet({
   onChange: (f: Filters) => void; resultCount: number;
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  const { plan } = usePlan();
 
   useEffect(() => {
     if (!open) return;
@@ -37,6 +59,12 @@ export default function FilterSheet({
 
   if (!open) return null;
   const n = countFilters(value);
+
+  const mineCount = (k: string) =>
+    EMPLOYERS.filter((e) => {
+      const m = (plan[e.i]?.myEl ?? "") as MyEl;
+      return k === "none" ? m === "" : m === k;
+    }).length;
 
   return (
     <div className={s.scrim} onClick={onClose}>
@@ -62,15 +90,34 @@ export default function FilterSheet({
             <p className={s.hint}>With more than one selected, we only show employers offering all of them.</p>
           </Group>
 
-          <Group title="Eligibility and location">
+          <Group title="What lets you work in Canada">
+            {AUTHS.filter((a) => a.k !== "unsure").map((a) => (
+              <Chip key={a.k} label={a.label} n={RULED_OUT[a.k]}
+                on={value.auth === a.k}
+                onClick={() => onChange({ ...value, auth: value.auth === a.k ? "" : a.k })} />
+            ))}
+            <p className={s.hint}>
+              The number is how many employers that status rules out. We only count the cases
+              where we found the policy published and linked it — we make no claim about the rest,
+              and nothing here is stored or sent anywhere.
+            </p>
+          </Group>
+
+          <Group title="What you recorded yourself">
+            {MINE.map((m) => (
+              <Chip key={m.k} label={m.label} n={mineCount(m.k)}
+                on={value.mine.includes(m.k)}
+                onClick={() => onChange({ ...value, mine: toggle(value.mine, m.k) })} />
+            ))}
+            <p className={s.hint}>
+              Your own notes from the floor, kept apart from the sourced policies above.
+              Set it on any employer’s page.
+            </p>
+          </Group>
+
+          <Group title="Location">
             <Chip label="Head office in the KW region" n={N_KW} on={value.kw}
               onClick={() => onChange({ ...value, kw: !value.kw })} />
-            <Chip label="Hide the ones requiring citizenship or PR" n={N_BLOCK} on={value.noblock}
-              onClick={() => onChange({ ...value, noblock: !value.noblock })} />
-            <p className={s.hint}>
-              We only count the {N_BLOCK} cases where we found the policy published. We make no
-              claim about the rest.
-            </p>
           </Group>
 
           <Group title="Industry">

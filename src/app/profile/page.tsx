@@ -2,13 +2,14 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useProfile, SCHOOLS, AUTHS, SEEKING, FIELDS, EMPTY_PROFILE, type Profile } from "@/lib/profile";
+import { useProfile, AUTHS, SEEKING, FIELDS, EMPTY_PROFILE, type Profile } from "@/lib/profile";
 import { buildPresets } from "@/lib/presets";
 import { usePlan } from "@/lib/store";
 import { byId } from "@/lib/data";
+import BackupPanel from "@/components/BackupPanel";
 import s from "./profile.module.css";
 
-export default function Perfil() {
+export default function ProfilePage() {
   const { profile, ready, save, clear } = useProfile();
   const { plan, toggleSaved } = usePlan();
   const router = useRouter();
@@ -138,6 +139,8 @@ export default function Perfil() {
             </button>
           )}
         </div>
+
+        <BackupPanel />
       </main>
     </>
   );

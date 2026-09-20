@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   EMPLOYERS, FLOORPLAN, byWalk, BLOCKING, ELIGIBILITY, HIRING,
-  AISLE_X, AISLE_ORDER, walkKey,
+  AISLE_X, AISLE_ORDER,
 } from "@/lib/data";
 import { usePlan } from "@/lib/store";
 import { useProfile } from "@/lib/profile";

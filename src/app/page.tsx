@@ -3,7 +3,10 @@ import { useMemo, useState } from "react";
 import Masthead from "@/components/Masthead";
 import EmployerRow from "@/components/EmployerRow";
 import FilterSheet, { NO_FILTERS, countFilters, type Filters } from "@/components/FilterSheet";
-import { EMPLOYERS, HIRING, BLOCKING, PAIRED, byName, byWalk, match, type Why } from "@/lib/data";
+import { EMPLOYERS, HIRING, PAIRED, byName, byWalk, match, type Why } from "@/lib/data";
+import { blockedFor } from "@/lib/presets";
+import { useProfile } from "@/lib/profile";
+import { usePlan } from "@/lib/store";
 import ProfileCard from "@/components/ProfileCard";
 import type { Employer } from "@/lib/types";
 import s from "./page.module.css";
@@ -17,11 +20,24 @@ const SORTS: { k: Sort; label: string }[] = [
 
 export default function Home() {
   const [q, setQ] = useState("");
-  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const [rawFilters, setFilters] = useState<Filters>(NO_FILTERS);
   const [sheet, setSheet] = useState(false);
   const [sort, setSort] = useState<Sort>("walk");
+  const { profile } = useProfile();
+  const { plan } = usePlan();
+
+  // If they already answered the authorisation question on /profile, start the
+  // list filtered the same way rather than making them say it twice. Derived
+  // rather than copied into state, so there is nothing to keep in sync.
+  const [authTouched, setAuthTouched] = useState(false);
+  const autoAuth = !authTouched && profile.auth && profile.auth !== "unsure" ? profile.auth : "";
+  const filters: Filters = useMemo(
+    () => ({ ...rawFilters, auth: rawFilters.auth || autoAuth }),
+    [rawFilters, autoAuth]
+  );
 
   const hits = useMemo(() => {
+    const blocked = filters.auth ? blockedFor(filters.auth) : null;
     const out: { e: Employer; why?: Why }[] = [];
     for (const e of EMPLOYERS) {
       if (filters.hire.length) {
@@ -32,12 +48,16 @@ export default function Home() {
       if (filters.ind.length && !filters.ind.includes(e.ind)) continue;
       if (filters.cat.length && !e.c.some((c) => filters.cat.includes(c))) continue;
       if (filters.kw && e.kw !== 1) continue;
-      if (filters.noblock && e.el && BLOCKING.has(e.el.v)) continue;
+      if (blocked && e.el && blocked.has(e.el.v)) continue;
+      if (filters.mine.length) {
+        const m = plan[e.i]?.myEl ?? "";
+        if (!filters.mine.includes(m === "" ? "none" : m)) continue;
+      }
       const m = match(e, q.trim());
       if (m.ok) out.push({ e, why: m.why });
     }
     return out;
-  }, [q, filters]);
+  }, [q, filters, plan]);
 
   const nf = countFilters(filters);
   const sorted = useMemo(() => {
@@ -129,7 +149,7 @@ export default function Home() {
       </main>
 
       <FilterSheet open={sheet} onClose={() => setSheet(false)} value={filters}
-        onChange={setFilters} resultCount={hits.length} />
+        onChange={(f) => { setAuthTouched(true); setFilters(f); }} resultCount={hits.length} />
     </>
   );
 }
