@@ -10,11 +10,36 @@
   margin-right:5px;vertical-align:-1px}
 
 /* Por defecto el piso entero entra en el ancho del teléfono: para ver dónde caen
-   tus paradas no hace falta hacer scroll. El zoom hace legibles los códigos. */
-.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;
+   tus paradas no hace falta hacer scroll. El zoom hace legibles los códigos.
+
+   El paneo vive acá adentro y no debe tocar el resto del sitio:
+   - overscroll-behavior:contain corta el encadenamiento al scroll de la página
+   - touch-action:pan-x pan-y deja arrastrar con un dedo y evita que el pellizco
+     haga zoom de la página entera desde dentro del mapa
+   - max-height impide que ampliar el plano estire la página */
+/* El marco es una ventana de tamaño fijo: el aspect-ratio (lo pone la página,
+   con las medidas reales del FRAME) le da un alto definido que no depende del
+   contenido, así que hacer zoom agranda el plano y nunca la caja. Un contenedor
+   con overflow es justo el caso donde el contenido no estira un aspect-ratio. */
+.viewport{--cap:min(78vh,620px);
+  overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  touch-action:pan-x pan-y;max-height:var(--cap);
   background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:8px}
-.svg{display:block;width:100%;height:auto}
-.scroll[data-zoom="true"] .svg{min-width:1000px;width:1000px}
+/* Con zoom el gesto es del marco: touch-action:none impide que el navegador
+   convierta el arrastre en scroll de la página, y el paneo lo hacemos nosotros.
+   En Fit no hay nada que panear, así que el dedo vuelve a scrollear el sitio. */
+.viewport[data-zoomed="true"]{cursor:grab;touch-action:none}
+.viewport[data-drag="true"]{cursor:grabbing;user-select:none}
+/* El lienzo crece en los dos ejes con el zoom; el SVG lo llena y su
+   preserveAspectRatio por defecto escala el dibujo parejo, sin deformarlo. */
+.canvas{width:100%;height:100%}
+.svg{display:block;width:100%;height:100%}
+
+.zoomers{display:flex;gap:6px}
+.zoomers button{min-width:var(--tap);min-height:38px;padding:0 12px;
+  background:var(--surface);border:1px solid var(--rule);border-radius:999px;
+  color:var(--ink);font-weight:700;font-size:15px;line-height:1}
+.zoomers button:disabled{opacity:.42}
 
 /* carriles = los pasillos por donde se camina */
 .lane{fill:var(--court);opacity:.055}
