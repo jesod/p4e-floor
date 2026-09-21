@@ -1,20 +1,61 @@
 "use client";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import type { Employer } from "./types";
 
 /** Work authorization. Cross-checked against work_eligibility, which only holds sourced cases. */
 export type Auth = "citizen" | "pr" | "permit" | "unsure";
 export type Seeking = "coop" | "summer" | "ft27" | "ftal";
+
+/** Where you'd rather end up. Favours, never hides. */
+export type Region = "kw" | "toronto" | "brantford";
 
 export type Profile = {
   school?: "conestoga" | "guelph" | "waterloo" | "laurier";
   auth?: Auth;
   seeking: Seeking[];
   fields: string[];      // keys from FIELDS
-  localOnly: boolean;    // favour employers with a verified head office in the KW region
+  regions: Region[];     // favour employers with a verified head office there
   done: boolean;
 };
 
-export const EMPTY_PROFILE: Profile = { seeking: [], fields: [], localOnly: false, done: false };
+export const EMPTY_PROFILE: Profile = { seeking: [], fields: [], regions: [], done: false };
+
+/**
+ * Etobicoke, North York, Scarborough and East York have been the City of
+ * Toronto since the 1998 amalgamation, so a head office there is a head office
+ * in Toronto. Mississauga, Brampton, Vaughan, Markham, Oakville and Burlington
+ * are separate cities: near Toronto, not in it, and not counted here.
+ */
+const TORONTO = new Set(["Toronto", "Etobicoke", "North York", "Scarborough", "East York"]);
+
+/**
+ * Each region matches on the head office we verified against the company's own
+ * site. That is why the counts are small: the dataset only claims what it can
+ * cite, and an employer with no sourced address belongs to no region.
+ */
+export const REGIONS: {
+  k: Region; label: string; where: string; routeTitle: string; reason: string;
+  match: (e: Employer) => boolean;
+}[] = [
+  {
+    k: "kw", label: "KW region", where: "Kitchener–Waterloo and nearby",
+    routeTitle: "The ones based in KW",
+    reason: "Verified head office in the KW region",
+    match: (e) => e.kw === 1,
+  },
+  {
+    k: "toronto", label: "Toronto", where: "the City of Toronto",
+    routeTitle: "The ones based in Toronto",
+    reason: "Verified head office in Toronto",
+    match: (e) => TORONTO.has(e.hq?.c ?? ""),
+  },
+  {
+    k: "brantford", label: "Brantford", where: "Brantford",
+    routeTitle: "The ones based in Brantford",
+    reason: "Verified head office in Brantford",
+    match: (e) => e.hq?.c === "Brantford",
+  },
+];
 
 export const SCHOOLS = [
   { k: "conestoga", label: "Conestoga College" },
@@ -63,11 +104,31 @@ const KEY = "p4e.profile.v1";
 type Ctx = { profile: Profile; ready: boolean; save: (p: Profile) => void; clear: () => void };
 const C = createContext<Ctx | null>(null);
 
+/**
+ * Profiles saved before "the region" could be more than one carry `localOnly`.
+ * Rebuilt field by field rather than spread, so a stale key can't ride along
+ * into storage and nothing downstream has to guard against a missing array.
+ */
+export function migrateProfile(raw: unknown): Profile {
+  const v = (raw ?? {}) as Partial<Profile> & { localOnly?: boolean };
+  const regions = Array.isArray(v.regions)
+    ? v.regions.filter((r): r is Region => REGIONS.some((x) => x.k === r))
+    : v.localOnly ? (["kw"] as Region[]) : [];
+  return {
+    school: v.school,
+    auth: v.auth,
+    seeking: Array.isArray(v.seeking) ? v.seeking : [],
+    fields: Array.isArray(v.fields) ? v.fields : [],
+    regions,
+    done: Boolean(v.done),
+  };
+}
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    try { const v = localStorage.getItem(KEY); if (v) setProfile(JSON.parse(v) as Profile); } catch {}
+    try { const v = localStorage.getItem(KEY); if (v) setProfile(migrateProfile(JSON.parse(v))); } catch {}
     setReady(true);
   }, []);
   const save = (p: Profile) => {
