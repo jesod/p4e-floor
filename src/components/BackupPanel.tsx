@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { usePlan, mergePlans, isEmptyStop, normaliseStop, type Plan } from "@/lib/store";
-import { useProfile, type Profile } from "@/lib/profile";
+import { useProfile, migrateProfile, type Profile } from "@/lib/profile";
 import s from "./BackupPanel.module.css";
 
 type Backup = { app: string; exported: string; plan: Plan; profile?: Profile };
@@ -47,7 +47,9 @@ export default function BackupPanel() {
       replaceAll(merged);
       // Someone else's answers shouldn't quietly replace yours.
       let note = "";
-      if (parsed.profile && !profile.done) { saveProfile(parsed.profile); note = " Profile restored."; }
+      // Through the same migration as stored profiles: a file exported by an
+      // older build answers question 4 with `localOnly`, not with regions.
+      if (parsed.profile && !profile.done) { saveProfile(migrateProfile(parsed.profile)); note = " Profile restored."; }
       else if (parsed.profile) note = " Your own profile was kept.";
       setText(""); setOpen(false);
       setMsg(`Merged ${Object.keys(incoming).length} employers, ${added} new contacts.${note}`);

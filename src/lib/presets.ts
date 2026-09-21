@@ -1,5 +1,5 @@
 import { EMPLOYERS, HIRING, BLOCKING, walkKey, AISLE_LABEL } from "./data";
-import { FIELDS, type Profile } from "./profile";
+import { FIELDS, REGIONS, type Profile } from "./profile";
 import type { Employer } from "./types";
 
 /** Which eligibility values are ruled out by the declared work authorization. */
@@ -14,6 +14,7 @@ export type Scored = { e: Employer; score: number; reasons: string[] };
 export function scoreAll(p: Profile): { hits: Scored[]; excluded: Employer[] } {
   const blocked = blockedFor(p.auth);
   const fields = FIELDS.filter((f) => p.fields.includes(f.k));
+  const regions = REGIONS.filter((r) => p.regions.includes(r.k));
   const hits: Scored[] = [];
   const excluded: Employer[] = [];
 
@@ -36,7 +37,9 @@ export function scoreAll(p: Profile): { hits: Scored[]; excluded: Employer[] } {
       const doms = (e.sd ?? []).filter((d) => f.domains.includes(d.d)).map((d) => d.d);
       if (doms.length) { score += doms.length; reasons.push(`${f.label}: their site talks about ${doms.join(", ")}`); }
     }
-    if (p.localOnly && e.kw === 1) { score += 2; reasons.push("Verified head office in the KW region"); }
+    // Picking two regions favours both rather than cancelling out: an employer
+    // only ever sits in one of them anyway.
+    for (const r of regions) if (r.match(e)) { score += 2; reasons.push(r.reason); }
 
     // With no fields chosen, anything past the hard filters counts equally.
     if (fields.length === 0) score = Math.max(score, 1);
@@ -90,14 +93,21 @@ export function buildPresets(p: Profile): { presets: Preset[]; excluded: Employe
     }
   }
 
-  // Staying in the region.
-  const local = byWalkOrder.filter((h) => h.e.kw === 1);
-  if (local.length >= 3) {
+  // Staying in a region. With none picked we still offer the fair's own, which
+  // is where most of the verified head offices are.
+  const wanted = p.regions.length
+    ? REGIONS.filter((r) => p.regions.includes(r.k))
+    : REGIONS.filter((r) => r.k === "kw");
+  for (const r of wanted) {
+    const inRegion = byWalkOrder.filter((h) => r.match(h.e));
+    // Two stops is a thin route, but if you asked for Brantford you should be
+    // shown Brantford rather than silence.
+    if (inRegion.length < 2) continue;
     presets.push({
-      k: "local",
-      title: "The ones based in KW",
-      why: `${local.length} with a head office we verified in Kitchener–Waterloo and nearby. Each address comes from the company\u2019s own site, linked.`,
-      ids: local.map((h) => h.e.i), count: local.length,
+      k: `region-${r.k}`,
+      title: r.routeTitle,
+      why: `${inRegion.length} with a head office we verified in ${r.where}. Each address comes from the company\u2019s own site, linked.`,
+      ids: inRegion.map((h) => h.e.i), count: inRegion.length,
     });
   }
 

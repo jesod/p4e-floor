@@ -2,12 +2,18 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useProfile, AUTHS, SEEKING, FIELDS, EMPTY_PROFILE, type Profile } from "@/lib/profile";
+import { useProfile, AUTHS, SEEKING, FIELDS, REGIONS, EMPTY_PROFILE, type Profile } from "@/lib/profile";
 import { buildPresets } from "@/lib/presets";
 import { usePlan } from "@/lib/store";
-import { byId } from "@/lib/data";
+import { byId, EMPLOYERS } from "@/lib/data";
 import BackupPanel from "@/components/BackupPanel";
 import s from "./profile.module.css";
+
+// Static: the dataset ships with the build, so these never change at runtime.
+const N_ALL = EMPLOYERS.length;
+const N_HQ = EMPLOYERS.filter((e) => e.hq).length;
+const N_REGION: Record<string, number> =
+  Object.fromEntries(REGIONS.map((r) => [r.k, EMPLOYERS.filter(r.match).length]));
 
 export default function ProfilePage() {
   const { profile, ready, save, clear } = useProfile();
@@ -16,7 +22,7 @@ export default function ProfilePage() {
   const [draft, setDraft] = useState<Profile | null>(null);
   const p = draft ?? profile;
   const set = (patch: Partial<Profile>) => setDraft({ ...p, ...patch, done: true });
-  const toggle = <K extends "seeking" | "fields">(key: K, v: string) => {
+  const toggle = <K extends "seeking" | "fields" | "regions">(key: K, v: string) => {
     const cur = p[key] as string[];
     set({ [key]: cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v] } as Partial<Profile>);
   };
@@ -91,10 +97,20 @@ export default function ProfilePage() {
           )}
         </Q>
 
-        <Q n={4} title="Do you want to stay in the region?" hint="Uses the head offices we could verify against a source.">
-          <button className="chip" aria-pressed={p.localOnly} onClick={() => set({ localOnly: !p.localOnly })}>
-            Favour employers based in KW
-          </button>
+        <Q n={4} title="Where do you want to work?"
+           hint="Favour employers based there. Pick as many as apply — this one never takes anyone away from you.">
+          {REGIONS.map((r) => (
+            <button key={r.k} className="chip" aria-pressed={p.regions.includes(r.k)}
+              onClick={() => toggle("regions", r.k)}>
+              {r.label}<span className="n">{N_REGION[r.k]}</span>
+            </button>
+          ))}
+          <p className={s.caveat}>
+            The numbers are how many employers we could tie to that city through a head
+            office on their own site — {N_HQ} of the {N_ALL} at the fair. The rest are not
+            from somewhere else, we just couldn’t source an address for them, so they are
+            never pushed down.
+          </p>
         </Q>
 
         <section className={s.results}>
