@@ -6,8 +6,9 @@ import FilterSheet, { NO_FILTERS, countFilters, type Filters } from "@/component
 import { EMPLOYERS, HIRING, PAIRED, byName, byWalk, match, type Why } from "@/lib/data";
 import { blockedFor } from "@/lib/presets";
 import { useProfile } from "@/lib/profile";
-import { usePlan } from "@/lib/store";
+import { usePlan, isEmptyStop, normaliseStop } from "@/lib/store";
 import ProfileCard from "@/components/ProfileCard";
+import SheetExport from "@/components/SheetExport";
 import type { Employer } from "@/lib/types";
 import s from "./page.module.css";
 
@@ -58,6 +59,14 @@ export default function Home() {
     }
     return out;
   }, [q, filters, plan]);
+
+  // Everything you have written down, whatever the filters are set to right
+  // now: a filter is a way of looking at the fair, not a way of choosing what
+  // to keep. In walking order, so the file reads like the floor.
+  const recorded = useMemo(
+    () => EMPLOYERS.filter((e) => plan[e.i] && !isEmptyStop(normaliseStop(plan[e.i]))).sort(byWalk),
+    [plan]
+  );
 
   const nf = countFilters(filters);
   const sorted = useMemo(() => {
@@ -146,6 +155,16 @@ export default function Home() {
             {sorted.map(({ e, why }) => <EmployerRow key={e.i} e={e} why={why} />)}
           </ul>
         )}
+
+        <SheetExport
+          employers={recorded}
+          file="p4e-my-notes"
+          title="Take your notes with you"
+          note="Everything you’ve written down — what happened at each booth, your notes, the
+                people you met, and where each employer stands — as one spreadsheet you keep.
+                It ignores the filters above and includes every employer you recorded
+                something for."
+        />
       </main>
 
       <FilterSheet open={sheet} onClose={() => setSheet(false)} value={filters}

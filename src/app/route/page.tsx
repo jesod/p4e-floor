@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import EmployerRow from "@/components/EmployerRow";
 import EmployerDetail from "@/components/EmployerDetail";
+import SheetExport from "@/components/SheetExport";
 import { EMPLOYERS, byId, byWalk, walkKey, AISLE_ORDER, AISLE_LABEL, AISLE_SHORT } from "@/lib/data";
 import HereNow from "@/components/HereNow";
 import { usePlan } from "@/lib/store";
@@ -175,6 +176,19 @@ export default function Route() {
         <ul className={s.list}>
           {route.map((e, i) => <EmployerRow key={e.i} e={e} stop={i + 1} />)}
         </ul>
+
+        {/* Deliberately above "Clear my route": the walk is worth saving before
+            anyone is offered a button that throws it away. */}
+        <SheetExport
+          employers={route}
+          file="p4e-walk"
+          numbered
+          title="Your walk, as a spreadsheet"
+          note="Every stop in the order you walked it, with what happened at each one, your
+                notes and the people you met. Skipped and unvisited stops are in there too,
+                marked as such, so the file is the whole walk and not just the good part."
+        />
+
         <button className={s.reset} onClick={() => {
           if (confirm("Clear your route, notes and visited marks?")) reset();
         }}>Clear my route</button>
