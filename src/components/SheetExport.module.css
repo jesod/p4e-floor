@@ -1,0 +1,5 @@
+.panel{padding-block:22px;border-top:1px solid var(--rule)}
+.panel h2{margin:0 0 9px}
+.note{margin:6px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.count{margin:11px 0 12px;font-size:14px;color:var(--ink-2)}
+.msg{margin:12px 0 0;font-size:14px;font-weight:600}
