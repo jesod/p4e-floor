@@ -24,13 +24,23 @@ const LANE_W = 88;     // ancho del carril de pasillo
 /** Encuadre fijo: cubre los booths y deja entrar la Hall Entrance, que es la referencia. */
 const FRAME = { x: 112, y: 560, w: 1620, h: 1580 };
 
+const ZOOM_MIN = 1;    // 1 = the whole plan across the viewport
+const ZOOM_MAX = 5;
+const ZOOM_STEP = 1.6;
+
 export default function Floor() {
   const { plan, ready, toggleSaved } = usePlan();
   const { profile } = useProfile();
   const [sel, setSel] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(false);
+  const [zoom, setZoom] = useState(ZOOM_MIN);
   const [showMatches, setShowMatches] = useState(true);
-  const scroller = useRef<HTMLDivElement>(null);
+  const viewport = useRef<HTMLDivElement>(null);
+  /** Where to re-centre once the new zoom has been laid out, as 0..1 of the canvas. */
+  const anchor = useRef<{ x: number; y: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; sx: number; sy: number } | null>(null);
+  const [grabbing, setGrabbing] = useState(false);
+  /** Set once a pointer has travelled far enough to be a pan, so it isn't a tap. */
+  const panned = useRef(false);
 
   const route = useMemo(() => EMPLOYERS.filter((e) => plan[e.i]?.saved).sort(byWalk), [plan]);
   const order = useMemo(() => new Map(route.map((e, i) => [e.i, i + 1])), [route]);
@@ -53,16 +63,39 @@ export default function Floor() {
     []
   );
 
-  // Al ampliar, el plano es mas ancho que la pantalla. Arrancar en el borde izquierdo
-  // deja al usuario mirando piso vacio: centramos en su primera parada.
-  useEffect(() => {
-    const el = scroller.current;
-    if (!el || !zoom) return;
+  /**
+   * Zoom about the middle of what you are already looking at, so the floor does
+   * not jump under you. The first step up from Fit is the exception: centring on
+   * the middle of the plan would leave you staring at empty floor, so we aim at
+   * your first stop instead.
+   */
+  const applyZoom = (next: number) => {
+    const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));
+    if (z === zoom) return;
+    const el = viewport.current;
     const first = route[0] ?? EMPLOYERS.find((e) => e.x != null);
-    if (!first?.x) return;
-    const frac = (first.x - FRAME.x) / FRAME.w;
-    el.scrollLeft = Math.max(0, frac * el.scrollWidth - el.clientWidth / 2);
-  }, [zoom, route]);
+    if (zoom === ZOOM_MIN && z > ZOOM_MIN && first?.x != null && first?.y != null) {
+      anchor.current = {
+        x: (first.x - FRAME.x) / FRAME.w,
+        y: (first.y - FRAME.y) / FRAME.h,
+      };
+    } else if (el && el.scrollWidth > 0 && el.scrollHeight > 0) {
+      anchor.current = {
+        x: (el.scrollLeft + el.clientWidth / 2) / el.scrollWidth,
+        y: (el.scrollTop + el.clientHeight / 2) / el.scrollHeight,
+      };
+    }
+    setZoom(z);
+  };
+
+  useEffect(() => {
+    const el = viewport.current;
+    const a = anchor.current;
+    anchor.current = null;
+    if (!el || !a) return;
+    el.scrollLeft = Math.max(0, a.x * el.scrollWidth - el.clientWidth / 2);
+    el.scrollTop = Math.max(0, a.y * el.scrollHeight - el.clientHeight / 2);
+  }, [zoom]);
 
   return (
     <>
@@ -79,9 +112,13 @@ export default function Floor() {
       <main className="wrap">
         <div className={s.controls}>
           <div className={s.chipRow}>
-            <button className="chip" aria-pressed={zoom} onClick={() => setZoom(!zoom)}>
-              {zoom ? "Fit the whole floor" : "Zoom in"}
-            </button>
+            <div className={s.zoomers} role="group" aria-label="Zoom">
+              <button onClick={() => applyZoom(zoom / ZOOM_STEP)}
+                disabled={zoom <= ZOOM_MIN} aria-label="Zoom out">−</button>
+              <button onClick={() => applyZoom(ZOOM_MIN)} disabled={zoom === ZOOM_MIN}>Fit</button>
+              <button onClick={() => applyZoom(zoom * ZOOM_STEP)}
+                disabled={zoom >= ZOOM_MAX} aria-label="Zoom in">+</button>
+            </div>
             {matchIds && (
               <button className="chip" aria-pressed={showMatches} onClick={() => setShowMatches(!showMatches)}>
                 Highlight my matches<span className="n">{matchIds.size}</span>
@@ -96,7 +133,52 @@ export default function Floor() {
           </div>
         </div>
 
-        <div className={s.scroll} data-zoom={zoom} ref={scroller}>
+        <div
+          className={s.viewport}
+          ref={viewport}
+          data-zoomed={zoom > ZOOM_MIN}
+          data-drag={grabbing}
+          /* The frame's own proportions, so its height never depends on how far
+             the plan inside is zoomed. */
+          style={{ aspectRatio: `${FRAME.w} / ${FRAME.h}` }}
+          onPointerDown={(ev) => {
+            panned.current = false;
+            if (zoom <= ZOOM_MIN) return;  // fitted: nothing to pan, leave the page alone
+            const el = viewport.current;
+            if (!el) return;
+            drag.current = { x: ev.clientX, y: ev.clientY, sx: el.scrollLeft, sy: el.scrollTop };
+          }}
+          onPointerMove={(ev) => {
+            const d = drag.current;
+            const el = viewport.current;
+            if (!d || !el) return;
+            const dx = ev.clientX - d.x;
+            const dy = ev.clientY - d.y;
+            // Commit to a pan only once the pointer has really travelled. Capturing
+            // on pointerdown would retarget the click away from the booth, so a
+            // plain tap would stop selecting anything. Touch pointers are captured
+            // implicitly by the browser and reach us by bubbling; a mouse needs to
+            // be captured or the drag dies the moment it leaves the frame.
+            if (!panned.current) {
+              if (Math.abs(dx) <= 4 && Math.abs(dy) <= 4) return;
+              panned.current = true;
+              setGrabbing(true);
+              if (ev.pointerType === "mouse") el.setPointerCapture(ev.pointerId);
+            }
+            el.scrollLeft = d.sx - dx;
+            el.scrollTop = d.sy - dy;
+          }}
+          onPointerUp={(ev) => {
+            drag.current = null;
+            setGrabbing(false);
+            const el = viewport.current;
+            if (el?.hasPointerCapture(ev.pointerId)) el.releasePointerCapture(ev.pointerId);
+          }}
+          onPointerCancel={() => { drag.current = null; setGrabbing(false); }}
+        >
+          {/* Growing both axes by the same factor is what makes it a zoom: the SVG
+              fills the canvas and scales its drawing uniformly to match. */}
+          <div className={s.canvas} style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}>
           <svg viewBox={`${FRAME.x} ${FRAME.y} ${FRAME.w} ${FRAME.h}`} className={s.svg}
             role="img" aria-label="Floorplan showing every booth in the hall">
 
@@ -139,7 +221,7 @@ export default function Floor() {
                 : "var(--map-dim)";
               return (
                 <g key={e.i} className={s.booth} data-on={sel === e.i}
-                  onClick={() => setSel(sel === e.i ? null : e.i)}>
+                  onClick={() => { if (!panned.current) setSel(sel === e.i ? null : e.i); }}>
                   <rect x={e.x - HIT / 2} y={e.y - HIT / 2} width={HIT} height={HIT} fill="transparent" />
                   <rect x={e.x - BOOTH / 2} y={e.y - BOOTH / 2} width={BOOTH} height={BOOTH}
                     rx={6} fill={fill} className={s.boothFill}
@@ -167,6 +249,7 @@ export default function Floor() {
               </g>
             ))}
           </svg>
+          </div>
         </div>
 
         <p className={s.method}>
