@@ -2,15 +2,20 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import EmployerRow from "@/components/EmployerRow";
-import OutcomeChips from "@/components/OutcomeChips";
-import { EMPLOYERS, byWalk, walkKey, AISLE_ORDER, AISLE_LABEL, AISLE_SHORT, BLOCKING, ELIGIBILITY, host } from "@/lib/data";
+import EmployerDetail from "@/components/EmployerDetail";
+import { EMPLOYERS, byId, byWalk, walkKey, AISLE_ORDER, AISLE_LABEL, AISLE_SHORT } from "@/lib/data";
 import HereNow from "@/components/HereNow";
 import { usePlan } from "@/lib/store";
 import s from "./route.module.css";
 
 export default function Route() {
-  const { plan, get, ready, setVisited, setNote, reset } = usePlan();
-  const [focus, setFocus] = useState(false);
+  const { plan, get, ready, setVisited, reset } = usePlan();
+  // The stop you are standing at, held in state rather than derived from the
+  // plan. The walk screen now carries the outcome chips and the contact form,
+  // and tapping an outcome marks the booth visited — if the screen followed
+  // "first unvisited stop" it would jump to the next employer while you were
+  // still typing someone's email into this one.
+  const [walking, setWalking] = useState<string | null>(null);
   const [here, setHere] = useState<string | null>(null);
   // Booths deferred during this walk. Skipping must not claim you were there,
   // so it parks the stop here instead of marking it visited.
@@ -43,7 +48,22 @@ export default function Route() {
   const done = route.filter((e) => plan[e.i]?.visited).length;
   const unvisited = route.filter((e) => !plan[e.i]?.visited);
   const remaining = unvisited.filter((e) => !skipped.includes(e.i));
-  const next = remaining[0];
+  const current = walking ? byId.get(walking) ?? null : null;
+
+  /**
+   * Leave the stop on screen. `park` puts it back in the queue for later
+   * instead of claiming you were there — that is what Skip means.
+   */
+  const leave = (park: boolean) => {
+    const rest = remaining.filter((e) => e.i !== walking);
+    // Nothing left to come back to, so end the walk rather than parking the
+    // last stop where it can never resurface.
+    if (rest.length === 0) { setSkipped([]); setWalking(null); return; }
+    if (park && walking) setSkipped((prev) => [...prev, walking]);
+    setWalking(rest[0].i);
+    // Each stop is a full page now, so the next one has to start at its top.
+    window.scrollTo({ top: 0 });
+  };
 
   // The rail: how many of your stops fall in each real aisle of the hall.
   const rail = useMemo(
@@ -75,63 +95,43 @@ export default function Route() {
     );
   }
 
-  if (focus && next) {
-    const st = get(next.i);
-    const blocked = next.el && BLOCKING.has(next.el.v);
-    const pos = route.indexOf(next) + 1;
+  // Walking a stop shows the employer's own page, whole: the same profile,
+  // notes and contacts you get from the Employers tab, under the route's own
+  // header and above its Skip/Visited bar.
+  if (current) {
+    const st = get(current.i);
+    const pos = route.findIndex((e) => e.i === current.i) + 1;
     return (
-      <main className={s.focus}>
-        <div className="wrap">
-          <div className={s.focusHead}>
-            <button className={s.close} onClick={() => setFocus(false)} aria-label="Leave route mode">
-              ✕ Exit
-            </button>
-            <p className={`mono ${s.pos}`}>{pos} / {route.length}</p>
-          </div>
-          <Rail rail={rail} activeAisle={next.a} />
-
-          <div className={s.card}>
-            <p className={s.aisle}>{next.a ? AISLE_LABEL[next.a] : "No location"}</p>
-            <p className={`mono ${s.bigBooth}`}>{next.b ?? "—"}</p>
-            <h1 className={`display ${s.focusName}`}>{next.n}</h1>
-            <p className={s.focusSector}>{next.sec}</p>
-
-            {blocked && (
-              <div className="alert" style={{ marginTop: 18 }}>
-                <b>{ELIGIBILITY[next.el!.v]}</b>
-                <p className="quote">“{next.el!.q}”</p>
-                <p style={{ margin: "8px 0 0" }}>
-                  <a className="src" href={next.el!.s} target="_blank" rel="noopener noreferrer">
-                    {host(next.el!.s)} ↗
-                  </a>
-                </p>
+      <>
+        <EmployerDetail
+          e={current}
+          walking
+          head={
+            <>
+              <div className={s.walkBar}>
+                <div className={`wrap ${s.walkBarIn}`}>
+                  <button className={s.close} onClick={() => setWalking(null)} aria-label="Leave route mode">
+                    ✕ Exit
+                  </button>
+                  <p className={`mono ${s.pos}`}>{pos} / {route.length}</p>
+                </div>
               </div>
-            )}
-
-            <OutcomeChips id={next.i} />
-
-            <textarea className={s.note} rows={2} value={st.note}
-              placeholder="Anything else worth remembering (optional)"
-              onChange={(ev) => setNote(next.i, ev.target.value)} />
-            <p className={s.detailLink}><Link href={`/e/${next.i}`}>See the full profile →</Link></p>
-          </div>
-        </div>
-
+              <div className={`wrap ${s.walkRail}`}>
+                <Rail rail={rail} activeAisle={current.a} />
+              </div>
+            </>
+          }
+        />
         <div className={s.actions}>
           <div className={`wrap ${s.actionsIn}`}>
-            <button className="btn" onClick={() => {
-              // Nothing left to come back to, so end the walk rather than
-              // parking the last stop where it can never resurface.
-              if (remaining.length <= 1) { setSkipped([]); setFocus(false); }
-              else setSkipped((prev) => [...prev, next.i]);
-            }}>Skip for now</button>
+            <button className="btn" onClick={() => leave(true)}>Skip for now</button>
             <button className="btn btn--primary" style={{ flex: 1 }}
-              onClick={() => setVisited(next.i, true)}>
-              {st.tags.length ? "Next stop" : "Visited"}
+              onClick={() => { setVisited(current.i, true); leave(false); }}>
+              {st.visited || st.tags.length ? "Next stop" : "Visited"}
             </button>
           </div>
         </div>
-      </main>
+      </>
     );
   }
 
@@ -158,7 +158,7 @@ export default function Route() {
             {/* Start each walk from a clean slate, so anything skipped last time
                 comes back around instead of disappearing. */}
             <button className="btn btn--primary btn--block"
-              onClick={() => { setSkipped([]); setFocus(true); }}>
+              onClick={() => { setSkipped([]); setWalking(unvisited[0].i); }}>
               {done === 0 ? "Start walking" : "Continue from booth " + (unvisited[0].b ?? "—")}
             </button>
           </div>
