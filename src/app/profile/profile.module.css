@@ -43,3 +43,9 @@
 .foot{display:flex;flex-direction:column;gap:10px;align-items:center;padding-block:10px 34px}
 .clear{background:none;border:0;color:var(--ink-2);font-size:13.5px;text-decoration:underline;
   min-height:var(--tap)}
+
+/* Reference material: reachable, but not competing for a thumb-reachable tab. */
+.about{padding-block:22px 34px;border-top:1px solid var(--rule)}
+.about h2{margin:0 0 9px}
+.aboutNote{margin:0 0 13px;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+.aboutLink{text-decoration:none}

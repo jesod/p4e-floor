@@ -10,7 +10,7 @@
   margin-right:5px;vertical-align:-1px}
 
 /* Por defecto el piso entero entra en el ancho del teléfono: para ver dónde caen
-   tus paradas no hace falta hacer scroll. El zoom da los códigos de booth. */
+   tus paradas no hace falta hacer scroll. El zoom hace legibles los códigos. */
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;
   background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:8px}
 .svg{display:block;width:100%;height:auto}
@@ -26,13 +26,17 @@
 .boothFill{transition:opacity .15s}
 .booth[data-on="true"] .boothFill{stroke:var(--ink);stroke-width:9;paint-order:stroke}
 .code{font-family:var(--font-mono),monospace;font-weight:700;font-size:20px;
-  fill:var(--ink);opacity:.75;pointer-events:none}
+  fill:var(--ink);opacity:.8;pointer-events:none}
+/* On a filled booth the default ink disappears, so follow the fill.
+   Amber reads light in both themes, hence the fixed dark value. */
+.codeOnCourt{fill:var(--on-court);opacity:1}
+.codeOnFlag{fill:#221A00;opacity:1}
 
 .path{stroke:var(--court);stroke-width:7;stroke-dasharray:3 22;opacity:.65}
 .landmark{font-family:var(--font-display),sans-serif;font-weight:700;font-size:32px;
   letter-spacing:.08em;fill:var(--ink-2);opacity:.85;
   stroke:var(--surface);stroke-width:11;paint-order:stroke;stroke-linejoin:round}
-.num{font-family:var(--font-mono),monospace;font-weight:700;font-size:56px;fill:var(--on-court)}
+.num{font-family:var(--font-mono),monospace;font-weight:700;font-size:17px;fill:var(--on-court)}
 
 .method{font-size:13px;line-height:1.55;color:var(--ink-2);margin:16px 0 30px}
 .method b{color:var(--ink)}

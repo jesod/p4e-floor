@@ -10,8 +10,15 @@ import { useProfile } from "@/lib/profile";
 import { scoreAll } from "@/lib/presets";
 import s from "./floor.module.css";
 
-const BOOTH = 34;      // el cuadrado dibujado
-const HIT = 76;        // el área de toque: el dedo es más grande que el cuadrado
+// Booths sit 52 apart across a back-to-back island and 62 down a column, so 46
+// is the widest square that still leaves a visible gap — and it is wide enough
+// to carry a three-character code like L15 inside it.
+const BOOTH = 46;      // el cuadrado dibujado
+// The touch area cannot exceed the 52-unit column pitch: overlapping targets
+// are resolved by paint order, so a wider one silently steals taps aimed at the
+// neighbouring booth — and the bigger square makes that easier to hit.
+const HIT = 52;
+const STOP_R = 14;     // la chapa de parada, sobre la esquina superior derecha
 const LANE_W = 88;     // ancho del carril de pasillo
 
 /** Encuadre fijo: cubre los booths y deja entrar la Hall Entrance, que es la referencia. */
@@ -73,7 +80,7 @@ export default function Floor() {
         <div className={s.controls}>
           <div className={s.chipRow}>
             <button className="chip" aria-pressed={zoom} onClick={() => setZoom(!zoom)}>
-              {zoom ? "Fit the whole floor" : "Zoom in for booth codes"}
+              {zoom ? "Fit the whole floor" : "Zoom in"}
             </button>
             {matchIds && (
               <button className="chip" aria-pressed={showMatches} onClick={() => setShowMatches(!showMatches)}>
@@ -135,22 +142,28 @@ export default function Floor() {
                   onClick={() => setSel(sel === e.i ? null : e.i)}>
                   <rect x={e.x - HIT / 2} y={e.y - HIT / 2} width={HIT} height={HIT} fill="transparent" />
                   <rect x={e.x - BOOTH / 2} y={e.y - BOOTH / 2} width={BOOTH} height={BOOTH}
-                    rx={5} fill={fill} className={s.boothFill}
+                    rx={6} fill={fill} className={s.boothFill}
                     stroke={isMatch && !stop ? "var(--court)" : "none"} strokeWidth={isMatch ? 4 : 0} />
-                  {zoom && !stop && (
-                    <text x={e.x} y={e.y + 7} textAnchor="middle" className={s.code}>{e.b}</text>
-                  )}
+                  {/* The code rides inside the square; its colour follows the
+                      fill so it stays readable on court blue and on amber. */}
+                  <text x={e.x} y={e.y + 7} textAnchor="middle"
+                    className={`${s.code} ${stop ? s.codeOnCourt : blocked ? s.codeOnFlag : ""}`}>
+                    {e.b}
+                  </text>
                   <title>{e.b} — {e.n}</title>
                 </g>
               );
             })}
 
-            {/* Tus paradas, numeradas en orden de recorrido */}
+            {/* Tus paradas: una chapa pequeña en la esquina, para no tapar el código */}
             {ready && route.map((e, i) => (e.x == null || e.y == null) ? null : (
               <g key={e.i} pointerEvents="none">
-                <circle cx={e.x} cy={e.y} r={46} fill="var(--court)"
-                  stroke="var(--surface)" strokeWidth={7} />
-                <text x={e.x} y={e.y + 19} textAnchor="middle" className={s.num}>{i + 1}</text>
+                {/* Pulled in from the corner: paired columns are only 52 apart,
+                    so a badge centred on the corner would sit on its neighbour. */}
+                <circle cx={e.x + BOOTH / 2 - 5} cy={e.y - BOOTH / 2 + 5} r={STOP_R}
+                  fill="var(--court)" stroke="var(--surface)" strokeWidth={4} />
+                <text x={e.x + BOOTH / 2 - 5} y={e.y - BOOTH / 2 + 11} textAnchor="middle"
+                  className={s.num}>{i + 1}</text>
               </g>
             ))}
           </svg>

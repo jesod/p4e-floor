@@ -141,6 +141,17 @@ export default function ProfilePage() {
         </div>
 
         <BackupPanel />
+
+        <section className={s.about}>
+          <h2 className="eyebrow">About</h2>
+          <p className={s.aboutNote}>
+            Where every fact in this app comes from, what we verified ourselves, and
+            what we deliberately chose not to show.
+          </p>
+          <Link className={`btn btn--block ${s.aboutLink}`} href="/sources">
+            Sources and method
+          </Link>
+        </section>
       </main>
     </>
   );

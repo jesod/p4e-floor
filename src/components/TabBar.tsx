@@ -4,12 +4,13 @@ import { usePathname } from "next/navigation";
 import { usePlan } from "@/lib/store";
 import { EVENT } from "@/lib/data";
 
+// Sources is reference material, not somewhere you go mid-fair, so it lives at
+// the foot of /profile instead of spending a thumb-reachable slot.
 const BASE = [
   { href: "/", label: "Employers", icon: "list" },
   { href: "/floor", label: "Floor", icon: "map" },
   { href: "/route", label: "My route", icon: "route" },
   { href: "/profile", label: "Profile", icon: "profile" },
-  { href: "/sources", label: "Sources", icon: "source" },
 ] as const;
 
 /**
