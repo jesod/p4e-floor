@@ -30,27 +30,22 @@
 .reset{display:block;margin:28px auto 8px;background:none;border:0;
   color:var(--ink-2);font-size:13.5px;text-decoration:underline;min-height:var(--tap)}
 
-/* ---- modo foco: una parada por pantalla ---- */
-.focus{padding-block:10px 0;min-height:70dvh}
-.focusHead{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  margin-bottom:14px}
+/* ---- modo foco: una parada por pantalla ----
+   La parada muestra la ficha entera del empleador, así que la salida y el
+   "3 / 12" se quedan pegados arriba: después de bajar a los contactos, volver
+   a buscarlos a scrollazos no es opción con una mano y de pie. */
+.walkBar{position:sticky;top:0;z-index:40;background:var(--bone);
+  border-bottom:1px solid var(--rule)}
+.walkBarIn{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-block:6px}
+.walkRail{padding-block:14px 4px}
 .close{background:none;border:0;color:var(--ink-2);font-size:14.5px;font-weight:600;
   min-height:var(--tap);padding:0 6px 0 0}
 .pos{font-size:14px;font-weight:700;color:var(--ink-2);letter-spacing:.02em}
 
-.card{margin-top:20px}
-.aisle{margin:0;font-family:var(--font-display),sans-serif;font-weight:700;font-size:11px;
-  letter-spacing:.15em;text-transform:uppercase;color:var(--court)}
-.bigBooth{margin:2px 0 0;font-size:clamp(64px,22vw,96px);font-weight:700;
-  line-height:.86;letter-spacing:-.045em}
-.focusName{font-size:clamp(24px,7vw,32px);line-height:1.08;margin:16px 0 0;letter-spacing:-.022em}
-.focusSector{margin:6px 0 0;color:var(--ink-2);font-size:15px}
-.note{width:100%;min-height:86px;margin-top:20px;padding:11px 12px;font:inherit;font-size:16px;
-  color:var(--ink);background:var(--surface);border:1px solid var(--rule);
-  border-radius:var(--r);resize:vertical}
-.detailLink{margin:14px 0 0;font-size:14.5px}
-
-.actions{position:sticky;bottom:0;margin-top:26px;background:var(--bone);
+/* Se apoya justo encima de la barra de pestañas fija, no debajo de ella. */
+.actions{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));
+  margin-top:26px;background:var(--bone);
   border-top:1px solid var(--rule);padding-block:12px}
 .actionsIn{display:flex;gap:10px}
 

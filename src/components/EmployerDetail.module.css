@@ -21,6 +21,10 @@
 .hero :global(.tag--hire){background:rgba(255,255,255,.16);color:#fff}
 .hero :global(.tag--kw){background:var(--turf);color:#fff}
 
+/* Caminando, el número de stand es lo único que estás buscando en el pasillo:
+   ahí manda la pantalla, y las secciones de referencia pasan a segundo plano. */
+.hero[data-walking="true"] .booth{font-size:clamp(56px,18vw,80px);line-height:.88;letter-spacing:-.04em}
+
 .main{padding-block:4px 30px}
 .section{padding-block:20px;border-bottom:1px solid var(--rule)}
 .section h2{margin:0 0 9px}

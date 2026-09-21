@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { EMPLOYERS, byId } from "@/lib/data";
-import Detail from "./Detail";
+import EmployerDetail from "@/components/EmployerDetail";
 
 export function generateStaticParams() {
   return EMPLOYERS.map((e) => ({ id: e.i }));
@@ -21,5 +21,5 @@ export default async function EmployerPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const e = byId.get(id);
   if (!e) notFound();
-  return <Detail e={e} />;
+  return <EmployerDetail e={e} />;
 }

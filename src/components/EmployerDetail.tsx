@@ -6,14 +6,27 @@ import type { Employer } from "@/lib/types";
 import { HIRING, BLOCKING, ELIGIBILITY, SECURITY, AISLE_LABEL, PAIRED, host } from "@/lib/data";
 import { usePlan, type MyEl } from "@/lib/store";
 import OutcomeChips from "@/components/OutcomeChips";
-import s from "./detail.module.css";
+import s from "./EmployerDetail.module.css";
 
 const MY_EL: { k: MyEl; label: string }[] = [
   { k: "open", label: "No PR needed" },
   { k: "needs", label: "Needs PR or citizenship" },
 ];
 
-export default function Detail({ e }: { e: Employer }) {
+/**
+ * One employer, everything we know and everything you can record. Used twice:
+ * as its own page at /e/[id], and inside the walk, where the route supplies its
+ * own chrome around this body. Sharing it means what you can write down at a
+ * booth never depends on which screen you happened to open it from.
+ */
+export default function EmployerDetail({ e, head, walking }: {
+  e: Employer;
+  /** Replaces the back/save bar. The walk puts its exit and progress here. */
+  head?: React.ReactNode;
+  /** Inside the walk: the Skip/Visited bar below owns "visited", and there is
+   *  no way back to the full list until you leave the route. */
+  walking?: boolean;
+}) {
   const router = useRouter();
   const { get, toggleSaved, toggleVisited, setNote, setMyEl, addContact, removeContact, ready } = usePlan();
   const st = get(e.i);
@@ -24,29 +37,91 @@ export default function Detail({ e }: { e: Employer }) {
   const [cInfo, setCInfo] = useState("");
   const canAdd = Boolean(cName.trim() || cRole.trim() || cInfo.trim());
 
+  /**
+   * What happened at the booth, and who you met: identical fields either way,
+   * only the position changes. It is an element and not a nested component on
+   * purpose — a component declared in here would be a new type on every
+   * render, and React would remount the form, losing the caret mid-word.
+   */
+  const boothNotes = (
+    <>
+      <Section title="At the booth">
+        <OutcomeChips id={e.i} compact />
+        <textarea className={s.textarea} value={st.note} rows={3}
+          placeholder="Who you spoke to, what they asked for, what to follow up on…"
+          onChange={(ev) => setNote(e.i, ev.target.value)} />
+        {/* Caminando, el botón de abajo es el que marca la visita: dos controles
+            para lo mismo, y uno de ellos te cambia de parada, sólo confunde. */}
+        {!walking && (
+          <label className={s.check}>
+            <input type="checkbox" checked={ready && st.visited} onChange={() => toggleVisited(e.i)} />
+            I’ve visited this booth
+          </label>
+        )}
+        <p className={s.note} style={{ marginTop: 10 }}>
+          {walking
+            ? "Tapping an outcome already marks the booth visited. Finish here, then use the buttons at the bottom to move on."
+            : "Tapping an outcome marks the booth visited. Everything is saved on this phone only and feeds your follow-up list after the fair."}
+        </p>
+      </Section>
+
+      <Section title="People you met">
+        {st.contacts.length > 0 && (
+          <ul className={s.contacts}>
+            {st.contacts.map((c, i) => (
+              <li key={`${c.name}-${i}`} className={s.contact}>
+                <div>
+                  <p className={s.strong}>{c.name || "Someone at the booth"}</p>
+                  {c.role && <p className={s.note} style={{ margin: 0 }}>{c.role}</p>}
+                  {c.info && <p className={s.contactInfo}>{c.info}</p>}
+                </div>
+                <button className={s.del} onClick={() => removeContact(e.i, i)}
+                  aria-label={`Remove ${c.name || "contact"}`}>Remove</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className={s.contactForm}>
+          <input className={s.input} value={cName} onChange={(ev) => setCName(ev.target.value)}
+            placeholder="Name" autoComplete="off" aria-label="Contact name" />
+          <input className={s.input} value={cRole} onChange={(ev) => setCRole(ev.target.value)}
+            placeholder="Role or team" autoComplete="off" aria-label="Contact role" />
+          <input className={s.input} value={cInfo} onChange={(ev) => setCInfo(ev.target.value)}
+            placeholder="Email, phone or LinkedIn" autoComplete="off" aria-label="Contact details" />
+          <button className="btn btn--block" disabled={!canAdd} onClick={() => {
+            addContact(e.i, { name: cName.trim(), role: cRole.trim(), info: cInfo.trim() });
+            setCName(""); setCRole(""); setCInfo("");
+          }}>Add contact</button>
+        </div>
+      </Section>
+    </>
+  );
+
   return (
     <>
-      <div className={s.navbar}>
-        <div className={`wrap ${s.navIn}`}>
-          <button className={s.back} onClick={() => router.back()}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M14.5 5 8 12l6.5 7" />
-            </svg>
-            Back
-          </button>
-          <button className={s.saveBtn} aria-pressed={ready && st.saved} onClick={() => toggleSaved(e.i)}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"
-              fill={ready && st.saved ? "currentColor" : "none"} stroke="currentColor"
-              strokeWidth="1.9" strokeLinejoin="round">
-              <path d="M6.5 3.8h11a1 1 0 0 1 1 1v15.4l-6.5-4-6.5 4V4.8a1 1 0 0 1 1-1Z" />
-            </svg>
-            {ready && st.saved ? "On my route" : "Add to my route"}
-          </button>
+      {head ?? (
+        <div className={s.navbar}>
+          <div className={`wrap ${s.navIn}`}>
+            <button className={s.back} onClick={() => router.back()}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14.5 5 8 12l6.5 7" />
+              </svg>
+              Back
+            </button>
+            <button className={s.saveBtn} aria-pressed={ready && st.saved} onClick={() => toggleSaved(e.i)}>
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"
+                fill={ready && st.saved ? "currentColor" : "none"} stroke="currentColor"
+                strokeWidth="1.9" strokeLinejoin="round">
+                <path d="M6.5 3.8h11a1 1 0 0 1 1 1v15.4l-6.5-4-6.5 4V4.8a1 1 0 0 1 1-1Z" />
+              </svg>
+              {ready && st.saved ? "On my route" : "Add to my route"}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      <header className={s.hero}>
+      <header className={s.hero} data-walking={walking}>
         <div className="wrap">
           <div className={s.heroTop}>
             {e.b ? (
@@ -90,6 +165,10 @@ export default function Detail({ e }: { e: Employer }) {
             </p>
           </div>
         )}
+
+        {/* Al frente en el modo caminata: lo que viniste a anotar va primero y
+            la ficha de referencia queda debajo, a un scroll de distancia. */}
+        {walking && boothNotes}
 
         {e.el && !blocked && (
           <Section title="Eligibility · verified against a source">
@@ -176,55 +255,12 @@ export default function Detail({ e }: { e: Employer }) {
           </div>
         </Section>
 
-        <Section title="At the booth">
-          <OutcomeChips id={e.i} compact />
-          <textarea className={s.textarea} value={st.note} rows={3}
-            placeholder="Who you spoke to, what they asked for, what to follow up on…"
-            onChange={(ev) => setNote(e.i, ev.target.value)} />
-          <label className={s.check}>
-            <input type="checkbox" checked={ready && st.visited} onChange={() => toggleVisited(e.i)} />
-            I’ve visited this booth
-          </label>
-          <p className={s.note} style={{ marginTop: 10 }}>
-            Tapping an outcome marks the booth visited. Everything is saved on this phone
-            only and feeds your follow-up list after the fair.
-          </p>
-        </Section>
-
-        <Section title="People you met">
-          {st.contacts.length > 0 && (
-            <ul className={s.contacts}>
-              {st.contacts.map((c, i) => (
-                <li key={`${c.name}-${i}`} className={s.contact}>
-                  <div>
-                    <p className={s.strong}>{c.name || "Someone at the booth"}</p>
-                    {c.role && <p className={s.note} style={{ margin: 0 }}>{c.role}</p>}
-                    {c.info && <p className={s.contactInfo}>{c.info}</p>}
-                  </div>
-                  <button className={s.del} onClick={() => removeContact(e.i, i)}
-                    aria-label={`Remove ${c.name || "contact"}`}>Remove</button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className={s.contactForm}>
-            <input className={s.input} value={cName} onChange={(ev) => setCName(ev.target.value)}
-              placeholder="Name" autoComplete="off" aria-label="Contact name" />
-            <input className={s.input} value={cRole} onChange={(ev) => setCRole(ev.target.value)}
-              placeholder="Role or team" autoComplete="off" aria-label="Contact role" />
-            <input className={s.input} value={cInfo} onChange={(ev) => setCInfo(ev.target.value)}
-              placeholder="Email, phone or LinkedIn" autoComplete="off" aria-label="Contact details" />
-            <button className="btn btn--block" disabled={!canAdd} onClick={() => {
-              addContact(e.i, { name: cName.trim(), role: cRole.trim(), info: cInfo.trim() });
-              setCName(""); setCRole(""); setCInfo("");
-            }}>Add contact</button>
-          </div>
-        </Section>
+        {!walking && boothNotes}
 
         <p className={s.siteLink}>
           <a href={e.w} target="_blank" rel="noopener noreferrer">{host(e.w)} ↗</a>
         </p>
-        <p className={s.backLink}><Link href="/">← All employers</Link></p>
+        {!walking && <p className={s.backLink}><Link href="/">← All employers</Link></p>}
       </main>
     </>
   );
